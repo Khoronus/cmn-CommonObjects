@@ -1,5 +1,5 @@
 /**
-* @file RGBDData.hpp
+* @file RGBDReader.hpp
 * @brief Header of the relative class
 *
 * @section LICENSE
@@ -17,11 +17,13 @@
 *
 * @original  Alessandro Moro
 * @bug No known bugs.
-* @version 0.2.0.0
+* @version 0.3.0.0
 *
+* @changelog
+*  2019/10/08 Renamed: RGBDData -> RGBDReader
 */
-#ifndef COMMONOBJECTS_IO_RGBDDATA_HPP__
-#define COMMONOBJECTS_IO_RGBDDATA_HPP__
+#ifndef COMMONOBJECTS_IO_RGBDREADER_HPP__
+#define COMMONOBJECTS_IO_RGBDREADER_HPP__
 
 #include <iostream>
 #include <fstream>
@@ -50,7 +52,7 @@ enum SaveMode {
 /** @brief Class to perform some data operation over a binary comressed data
 */
 template <typename _TyByte>
-class RGBDData
+class RGBDReader
 {
 public:
 
@@ -105,15 +107,19 @@ public:
 		const cv::Size &size,
 		int fromID, int toID) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		// scan all the frames
 		for (int i = fromID; i < toID; ++i) {
@@ -175,15 +181,19 @@ public:
 		cv::Mat &rgb,
 		cv::Mat &map3D) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		// scan all the frames
 		{
@@ -233,15 +243,19 @@ public:
 		const std::string &path, int fromID, int bin,
 		cv::Mat &rgb, cv::Mat &map3D) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		std::cout << "Frame: " << fromID << std::endl;
 		// copy the image
@@ -278,15 +292,19 @@ public:
 		int fromID, int bin,
 		std::vector<std::pair<cv::Point3f, cv::Scalar>> &p3dcolor) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		std::cout << "Frame: " << fromID << std::endl;
 		// copy the image
@@ -520,15 +538,19 @@ public:
 		int fromID, int bin,
 		std::map<std::pair<int, int>, cv::Point3f> &uvxyz) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		// scan all the frames
 		{
@@ -571,15 +593,19 @@ public:
 		cv::Mat &rgb,
 		std::map<std::pair<int, int>, cv::Point3f> &uvxyz) {
 
-		// read the intrinsic parameters
-		std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
-		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
-		fin_intrinsic >> width >> height;
-		fin_intrinsic >> fx >> fy >> ppx >> ppy;
-		std::cout << "Intrinsic params: " <<
-			width << " " << height << " " << fx << " " << fy << " " <<
-			ppx << " " << ppy << std::endl;
-		float focal_input = (fx + fy) / 2;
+		//// read the intrinsic parameters
+		//std::ifstream fin_intrinsic(path + "\\intrinsic.txt");
+		//float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0;
+		//fin_intrinsic >> width >> height;
+		//fin_intrinsic >> fx >> fy >> ppx >> ppy;
+		//std::cout << "Intrinsic params: " <<
+		//	width << " " << height << " " << fx << " " << fy << " " <<
+		//	ppx << " " << ppy << std::endl;
+		//float focal_input = (fx + fy) / 2;
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
 
 		std::cout << "Frame: " << fromID << std::endl;
 		// copy the image
@@ -614,6 +640,37 @@ public:
 
 private:
 
+	/** @brief It reads a camera intrinsic parameter.
+
+		It reads a camera intrinsic parameter. The file is structured
+		in a naive form:
+		width height fx fy ppx ppy focal_input
+
+		@return It returns true in case of success. False otherwise.
+	*/
+	static bool read_intrinsic(
+		const std::string &fname,
+		float &width, 
+		float &height, 
+		float &fx, 
+		float &fy, 
+		float &ppx, 
+		float &ppy,
+		float &focal_input) {
+		// read the intrinsic parameters
+		std::ifstream fin_intrinsic(fname);
+		if (fin_intrinsic.is_open()) {
+			fin_intrinsic >> width >> height;
+			fin_intrinsic >> fx >> fy >> ppx >> ppy;
+			std::cout << "Intrinsic params: " <<
+				width << " " << height << " " << fx << " " << fy << " " <<
+				ppx << " " << ppy << std::endl;
+			focal_input = (fx + fy) / 2;
+			return true;
+		}
+		return false;
+	}
+
 	/** @brief It reads a binary file
 	*/
 	template<typename _Ty>
@@ -647,11 +704,11 @@ private:
 		return vec;
 	}
 
-	static cv::Point3f get_xyz_from_uv(float u, float v, float d, float px, float py, float focal) {
+	static cv::Point3f get_xyz_from_uv(float u, float v, float d, float ppx, float ppy, float focal) {
 		float x = 0, y = 0;
 		if (focal != 0) {
-			x = (u - px) / focal * d;
-			y = (v - py) / focal * d;
+			x = (u - ppx) / focal * d;
+			y = (v - ppy) / focal * d;
 		}
 		else {
 			x = 0;
@@ -660,11 +717,11 @@ private:
 		return cv::Point3f(x, y, d);
 	}
 
-	static cv::Point2f get_uv_from_xyz(float x, float y, float z, float px, float py, float focal) {
+	static cv::Point2f get_uv_from_xyz(float x, float y, float z, float ppx, float ppy, float focal) {
 		float u = 0, v = 0;
 		if (z != 0) {
-			u = focal * x / z + px;
-			v = focal * y / z + py;
+			u = focal * x / z + ppx;
+			v = focal * y / z + ppy;
 		}
 		else {
 			u = 0;
@@ -673,7 +730,7 @@ private:
 		return cv::Point2f(u, v);
 	}
 
-	static cv::Point3f get_xyz_from_pts(cv::Point2f &pts_row, cv::Mat &depth, float px, float py, float focal) {
+	static cv::Point3f get_xyz_from_pts(cv::Point2f &pts_row, cv::Mat &depth, float ppx, float ppy, float focal) {
 		float u = pts_row.x;
 		float v = pts_row.y;
 		int u0 = int(u);
@@ -689,7 +746,7 @@ private:
 			float d2 = depth.at<ushort>(v0 + 1, u0);
 			float d3 = depth.at<ushort>(v0 + 1, u0 + 1);
 			float d = (1 - vp) * (d1 * up + d0 * (1 - up)) + vp * (d3 * up + d2 * (1 - up));
-			return get_xyz_from_uv(u, v, d, px, py, focal);
+			return get_xyz_from_uv(u, v, d, ppx, ppy, focal);
 		}
 		else {
 			return cv::Point3f(0, 0, 0);
@@ -762,4 +819,4 @@ template<> char const* enumStrings<io::SaveMode>::data[] = { "sm_NotSet", "sm_Hi
 
 } // namespace co
 
-#endif // COMMONOBJECTS_IO_RGBDDATA_HPP__
+#endif // COMMONOBJECTS_IO_RGBDREADER_HPP__

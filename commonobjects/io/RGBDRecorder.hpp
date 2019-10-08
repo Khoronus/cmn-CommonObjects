@@ -32,7 +32,7 @@
 #include "../string_common/StringOp.hpp"
 
 #include "record/record_headers.hpp"
-#include "RGBDData.hpp"
+#include "RGBDReader.hpp"
 
 namespace co
 {

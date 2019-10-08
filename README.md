@@ -21,3 +21,6 @@ SharedDataBase.hpp, SharedDataELearning.hpp use shared_data_v3
 
 #string_common
 Classes for common string operations.
+
+#TODO
+Create a full working project with examples
