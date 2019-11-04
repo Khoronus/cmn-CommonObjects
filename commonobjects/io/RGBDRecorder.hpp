@@ -91,7 +91,7 @@ public:
 		@param[in] tex_coords float* data
 		@param[in] tex_coords_size vertices size in bytes
 	*/
-	void add(
+	void add_rgbxyzuv_as_binary(
 		const std::string &path,
 		unsigned int num_frame_save,
 		const void* color,
@@ -132,7 +132,7 @@ public:
 		@param[in] depth short* data
 		@param[in] depth_size vertices size in bytes
 	*/
-	void add(
+	void save_rgbd_as_binary(
 		const std::string &path,
 		unsigned int num_frame_save,
 		const void* color,
@@ -171,7 +171,7 @@ public:
 		@param[in] width image width
 		@param[in] height image height
 	*/
-	void add(
+	void save_rgbd_as_image(
 		const std::string &path,
 		unsigned int num_frame_save,
 		const void* color,
@@ -206,7 +206,11 @@ public:
 		record_container_[1].push(fname, rcd1);
 	}
 
-	void add_raw(
+	/** @brief 
+	
+		@previously add_raw
+	*/
+	void save_rgbd_as_binary(
 		const std::string &path,
 		unsigned int num_frame_save,
 		const void* color,
