@@ -70,6 +70,20 @@ public:
 		return{ first, last };
 	}
 
+	/** @brief It converts a padded string into number.
+
+		It converts a padded string into number.
+		i.e. 000014 -> 14
+	*/
+	static int string_padded2number(const std::string &s, char pad) {
+		std::string tmp = s;
+		while (tmp.size() > 0 &&
+			tmp[0] == pad) {
+			tmp.erase(0, 1);
+		}
+		return std::stoi(tmp);
+	}
+
 
 private:
 
