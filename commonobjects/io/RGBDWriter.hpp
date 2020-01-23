@@ -1,5 +1,5 @@
 /**
-* @file RGBDRecorder.hpp
+* @file RGBDWriter.hpp
 * @brief Header of the relative class
 *
 * @section LICENSE
@@ -21,8 +21,8 @@
 *
 * IMPORTANT: StoreData record MUST be included and linked
 */
-#ifndef COMMONOBJECTS_IO_RGBDRECORDER_HPP__
-#define COMMONOBJECTS_IO_RGBDRECORDER_HPP__
+#ifndef COMMONOBJECTS_IO_RGBDWRITER_HPP__
+#define COMMONOBJECTS_IO_RGBDWRITER_HPP__
 
 #include <iostream>
 #include <fstream>
@@ -41,15 +41,15 @@ namespace io
 
 /** @brief Class to record the RealSense data
 */
-class [[deprecated]] RGBDRecorder
+class RGBDWriter
 {
 public:
 
-	RGBDRecorder() {
+	RGBDWriter() {
 		save_mode_ = sm_NotSet;
 	}
 
-	~RGBDRecorder() {
+	~RGBDWriter() {
 		flush();
 	}
 
@@ -324,4 +324,4 @@ private:
 } // namespace io
 } // namespace co
 
-#endif // COMMONOBJECTS_IO_RGBDRECORDER_HPP__
+#endif // COMMONOBJECTS_IO_RGBDWRITER_HPP__

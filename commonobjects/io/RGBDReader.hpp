@@ -238,6 +238,49 @@ public:
 		The data structure is expected to be in the format:
 		path\color
 			\depth
+
+		The files are in the format 000000.ext
+		where 000000 is total of 6 numbers
+		.ext is the extension (.jpg rgb and .png depth)
+
+		@param[in] path Where the files are located.
+		@param[in] fromID Which file ID
+		@param[in] bin binning of the 3D map
+		@param[out] rgb RGB image (8bit 3 channels)
+		@param[out] depth depth image (16bit 1 channel)
+		@param[out] map3D XYZ coordinates (float 3 channels)
+	*/
+	static bool create_3Dpointcloud_imgsource(
+		const std::string &path, int fromID, int bin,
+		cv::Mat &rgb, cv::Mat &depth, cv::Mat &map3D) {
+
+		// read the intrinsic parameters
+		float width = 0, height = 0, fx = 0, fy = 0, ppx = 0, ppy = 0,
+			focal_input = 0;
+		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
+			ppx, ppy, focal_input);
+
+		std::string new_string =
+			co::text::StringOp::append_front_chars(6, fromID, '0');
+		// read image
+		std::string fname = path + "\\color\\" + new_string + ".jpg";
+		rgb = cv::imread(fname);
+		if (rgb.empty()) return false;
+		// read depth
+		fname = path + "\\depth\\" + new_string + ".png";
+		depth = cv::imread(fname, cv::IMREAD_UNCHANGED);
+		if (depth.empty()) return false;
+		// Get the xyz data in the form of map3D
+		get_xyzrgb(rgb, depth, ppx, ppy, focal_input, bin, map3D);
+		return true;
+	}
+
+
+	/** @brief It creates a 3D point cloud from images.
+
+		The data structure is expected to be in the format:
+		path\color
+			\depth
 	*/
 	static bool create_3Dpointcloud_imgsource(
 		const std::string &path, int fromID, int bin,
@@ -257,7 +300,7 @@ public:
 		read_intrinsic(path + "\\intrinsic.txt", width, height, fx, fy,
 			ppx, ppy, focal_input);
 
-		std::cout << "Frame: " << fromID << std::endl;
+		//std::cout << "Frame: " << fromID << std::endl;
 		// copy the image
 		//int n_zero = 6;
 		//std::string old_string = std::to_string(fromID);
@@ -662,9 +705,9 @@ private:
 		if (fin_intrinsic.is_open()) {
 			fin_intrinsic >> width >> height;
 			fin_intrinsic >> fx >> fy >> ppx >> ppy;
-			std::cout << "Intrinsic params: " <<
-				width << " " << height << " " << fx << " " << fy << " " <<
-				ppx << " " << ppy << std::endl;
+			//std::cout << "Intrinsic params: " <<
+			//	width << " " << height << " " << fx << " " << fy << " " <<
+			//	ppx << " " << ppy << std::endl;
 			focal_input = (fx + fy) / 2;
 			return true;
 		}
