@@ -74,6 +74,8 @@ public:
 
 		It converts a padded string into number.
 		i.e. 000014 -> 14
+
+            @note Empty strings or strings filled of pad character return 0.
 	*/
 	static int string_padded2number(const std::string &s, char pad) {
 		std::string tmp = s;
@@ -81,6 +83,7 @@ public:
 			tmp[0] == pad) {
 			tmp.erase(0, 1);
 		}
+                if (tmp.size() == 0) return 0;
 		return std::stoi(tmp);
 	}
 
