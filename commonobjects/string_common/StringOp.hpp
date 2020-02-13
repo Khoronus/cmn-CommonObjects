@@ -74,10 +74,12 @@ public:
 
 		It converts a padded string into number.
 		i.e. 000014 -> 14
+
+		The last character is expected to be a valid one
 	*/
 	static int string_padded2number(const std::string &s, char pad) {
 		std::string tmp = s;
-		while (tmp.size() > 0 &&
+		while (tmp.size() > 1 &&
 			tmp[0] == pad) {
 			tmp.erase(0, 1);
 		}
