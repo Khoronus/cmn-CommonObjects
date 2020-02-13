@@ -83,6 +83,7 @@ public:
 			tmp[0] == pad) {
 			tmp.erase(0, 1);
 		}
+        if (tmp.size() == 0) return 0;
 		return std::stoi(tmp);
 	}
 
