@@ -1,0 +1,16 @@
+#######################################################################
+# Macro to trim a substring. It is used mainly
+# to extract path information
+macro(GET_PATH VAR_LIST VAR_REQUESTED VAR_OUT)
+  FOREACH(varpath ${VAR_LIST})
+    #message(STATUS "varres = ${varpath}")
+	#check if the word exist
+	string(FIND ${varpath} ${VAR_REQUESTED} pos)
+    #message(STATUS "${VAR_REQUESTED} = ${pos}")
+	if (${pos} GREATER_EQUAL 0)
+      string(REPLACE ${VAR_REQUESTED} "" res ${varpath})
+      #message(STATUS "REPLACE => ${varpath} --> ${res}")
+	  set(${VAR_OUT} ${res})
+	endif()
+  ENDFOREACH()
+endmacro(GET_PATH VAR_LIST VAR_IDX VAR_OUT)

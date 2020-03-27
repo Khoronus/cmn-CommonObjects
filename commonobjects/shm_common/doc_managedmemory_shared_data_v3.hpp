@@ -1,5 +1,5 @@
 /**
-* @file doc_managedmemory_shared_data_v2.hpp
+* @file doc_managedmemory_shared_data_v3.hpp
 * @brief Shared memory manager
 *
 * @section LICENSE

@@ -24,6 +24,7 @@
 #ifndef COMMONOBJECTS_STRINGCOMMON_STRINGOP_HPP__
 #define COMMONOBJECTS_STRINGCOMMON_STRINGOP_HPP__
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <regex>

@@ -1,1 +1,18 @@
-# Ignore all the folders with name
+# Binary build files and folders
+build/
+exe/
+bin/
+obj/
+log/
+web/
+.vs/
+.ipynb_checkpoints/
+src/InstanceSegmentation/mycode/__pycache__/
+src/InstanceSegmentation/mycode/imagescfg/
+__pycache__/
+binary/
+binaryGUI/
+thirdParty/
+
+# Ignore local file
+configure/path_configuration.txt
