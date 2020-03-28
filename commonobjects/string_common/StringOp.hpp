@@ -55,9 +55,9 @@ public:
 		i.e. 16 becomes 000016
 	*/
 	static std::string append_front_chars(
-		int n_zero, int num_frame, char c) {
+		int n_chars, int num_frame, char c) {
 		std::string old_string = std::to_string(num_frame);
-		std::string new_string = std::string(n_zero - old_string.length(), c) +
+		std::string new_string = std::string(n_chars - old_string.length(), c) +
 			old_string;
 		return new_string;
 	}

@@ -74,6 +74,12 @@ include_directories(
 
 #######################################################################
 CREATE_EXAMPLE(string_common_StringOp "string_common_StringOp.cpp" "")
+CREATE_EXAMPLE(string_common_StringTypeConversion "string_common_StringTypeConversion.cpp" "")
+CREATE_EXAMPLE(sanity_sanity "sanity_sanity.cpp" "")
+CREATE_EXAMPLE(random_StringGenerator "random_StringGenerator.cpp" "")
+CREATE_EXAMPLE(enum_enum_helper "enum_enum_helper.cpp" "")
+CREATE_EXAMPLE(io_calibrationpointsio "io_calibrationpointsio.cpp" "")
+CREATE_EXAMPLE(io_pclviewerionaive "io_pclviewerionaive.cpp" "")
 
 #######################################################################
 if (USE_STATIC)

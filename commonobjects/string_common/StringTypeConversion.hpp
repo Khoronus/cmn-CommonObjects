@@ -1,6 +1,6 @@
 /**
-* @file StringOp.hpp
-* @brief Elaboration of strings
+* @file StringTypeConversion.hpp
+* @brief It converts string to another format
 *
 * @section LICENSE
 *
@@ -17,7 +17,7 @@
 *
 * @author Alessandro Moro <alessandromoro.italy@gmail.com>
 * @bug No known bugs.
-* @version 0.1.0.0
+* @version 0.2.0.0
 *
 */
 
@@ -26,6 +26,7 @@
 
 #include <string>
 #include <vector>
+#include <tuple>
 
 namespace co
 {

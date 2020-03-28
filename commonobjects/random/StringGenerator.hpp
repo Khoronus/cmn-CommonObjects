@@ -28,8 +28,6 @@
 #include <vector>
 #include <string>
 
-#include <boost/filesystem.hpp>
-
 namespace co
 {
 namespace random
@@ -45,7 +43,7 @@ public:
 
 		@lin: https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
 	*/
-	std::string random_string(size_t length)
+	static std::string random_string(size_t length)
 	{
 		auto randchar = []() -> char
 		{

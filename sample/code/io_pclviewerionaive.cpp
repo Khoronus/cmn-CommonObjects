@@ -1,5 +1,5 @@
 /**
-* @file string_common_StringOP.cpp
+* @file PCLViewerIONaive.cpp
 * @brief Example of the referred class.
 *
 * @section LICENSE
@@ -29,28 +29,10 @@
 #include <iostream>
 #include <sstream>      // std::stringstream
 
-#include "../../commonobjects/string_common/StringOp.hpp"
+#include <opencv2/opencv.hpp>
+
+#include "../../commonobjects/io/PCLViewerIONaive.hpp"
 
 void main() {
-	std::cout << "StringOp" << std::endl;
-
-
-	// split
-	std::cout << ">> split" << std::endl;
-	std::string sentence = "This is an example";
-	auto words = co::text::StringOp::split(sentence, ' ');
-	int num = 0;
-	for (auto it : words) {
-		std::cout << "word[" << num << "]: " << it << std::endl;
-		++num;
-	}
-
-	std::cout << ">> append" << std::endl;
-	auto res0 = co::text::StringOp::append_front_chars(6, 12, '0');
-	std::cout << "res_append:" << res0 << std::endl;
-
-	std::cout << ">> append" << std::endl;
-	auto res1 = co::text::StringOp::string_padded2number(res0, '0');
-	std::cout << "res_padded2number:" << res1 << std::endl;
-
+	std::cout << "PCLViewerIONaive" << std::endl;
 }
