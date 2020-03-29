@@ -80,6 +80,7 @@ CREATE_EXAMPLE(random_StringGenerator "random_StringGenerator.cpp" "")
 CREATE_EXAMPLE(enum_enum_helper "enum_enum_helper.cpp" "")
 CREATE_EXAMPLE(io_calibrationpointsio "io_calibrationpointsio.cpp" "")
 CREATE_EXAMPLE(io_pclviewerionaive "io_pclviewerionaive.cpp" "")
+CREATE_EXAMPLE(io_rgbd "io_rgbd.cpp" "")
 
 #######################################################################
 if (USE_STATIC)

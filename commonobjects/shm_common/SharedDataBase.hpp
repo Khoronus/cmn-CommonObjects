@@ -29,7 +29,7 @@
 #include <condition_variable>
 #include <map>
 
-#include "doc_managedmemory_shared_data_v3.hpp"
+#include "doc_managedmemory_shared_data_base.hpp"
 #include "../string_common/StringOp.hpp"
 
 namespace co
