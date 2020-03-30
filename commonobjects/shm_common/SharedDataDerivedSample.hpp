@@ -1,5 +1,5 @@
 /**
-* @file SharedDataStructure.hpp
+* @file SharedDataDerivedSample.hpp
 * @brief Class to allocate the memory and structure for the shared memory.
 *
 * @section LICENSE
@@ -22,8 +22,8 @@
 */
 
 
-#ifndef COMMONOBJECTS_SHMCOMMON_SHAREDDATASTRUCTURE_HPP__
-#define COMMONOBJECTS_SHMCOMMON_SHAREDDATASTRUCTURE_HPP__
+#ifndef COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSAMPLE_HPP__
+#define COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSAMPLE_HPP__
 
 #include "SharedDataBase.hpp"
 
@@ -67,18 +67,18 @@ in the int_vector as follow
 The points are defined as follow
 xyz (float) rgb (unsigned char)
 */
-class SharedDataStructure : public SharedDataBase
+class SharedDataDerivedSample : public SharedDataBase
 {
 public:
 
-	SharedDataStructure() {}
+	SharedDataDerivedSample() {}
 
-	~SharedDataStructure() {
+	~SharedDataDerivedSample() {
 		stop();
 	}
 
 	/** expected
-		type0,params0|type1,params1|...
+		type0,name0,params0|type1,name1,params1|...
 		the index of the object is in the order of the construct
 	*/
 	int parse(
@@ -117,6 +117,7 @@ public:
 
 				// function for each type
 				if (type == "pcl") {
+					// i.e. pcl,20,2000
 					int byte4point = std::stoi(words2[2]);
 					int num_points = std::stoi(words2[3]);
 					// size byte
@@ -135,8 +136,8 @@ public:
 						smm_.set_object_name(object_id, name);
 						++object_id;
 					}
-				}
-				else if (type == "pose_kSize") {
+				} else if (type == "pose_kSize") {
+					// i.e. pose_kSize,20,3,18
 					int byte4point = std::stoi(words2[2]);
 					int num_skeletons = std::stoi(words2[3]);
 					int num_points_skeleton = std::stoi(words2[4]);
@@ -158,8 +159,8 @@ public:
 						smm_.set_object_name(object_id, name);
 						++object_id;
 					}
-				}
-				else if (type == "image") {
+				} else if (type == "image") {
+					// i.e. image,640,480,3
 					int width = std::stoi(words2[2]);
 					int height = std::stoi(words2[3]);
 					int channels = std::stoi(words2[4]);
@@ -188,8 +189,8 @@ public:
 						smm_.set_object_name(object_id, name);
 						++object_id;
 					}
-				}
-				else if (type == "yolo") {
+				} else if (type == "yolo") {
+					// i.e. yolo
 					// yolo object has the xywh in the double_vector and the label
 					// in the ptr
 					// the labels size is in the int_vector
@@ -207,6 +208,7 @@ public:
 					}
 				}
 				else if (type == "instruction") {
+					// i.e. instruction,2048
 					// the instruction size
 					int bytes = std::stoi(words2[2]);
 					v_.push_back(0); // set the image size

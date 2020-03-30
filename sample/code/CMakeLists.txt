@@ -83,6 +83,8 @@ CREATE_EXAMPLE(io_pclviewerionaive "io_pclviewerionaive.cpp" "")
 CREATE_EXAMPLE(io_rgbd "io_rgbd.cpp" "")
 CREATE_EXAMPLE(shm_common_SharedPCServer "shm_common_SharedPCServer.cpp" "")
 CREATE_EXAMPLE(shm_common_SharedPCClient "shm_common_SharedPCClient.cpp" "")
+CREATE_EXAMPLE(shm_common_SharedDataDerivedSampleServer "shm_common_SharedDataDerivedSampleServer.cpp" "")
+CREATE_EXAMPLE(shm_common_SharedDataDerivedSampleClient "shm_common_SharedDataDerivedSampleClient.cpp" "")
 
 #######################################################################
 if (USE_STATIC)
