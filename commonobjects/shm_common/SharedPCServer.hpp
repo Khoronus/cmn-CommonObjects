@@ -26,6 +26,9 @@
 #define COMMONOBJECTS_SHMCOMMON_SHAREDPCSERVER_HPP__
 
 #include <map>
+#include <thread>
+#include <mutex>
+#include <memory>
 
 #include "doc_managedmemory_shared_data_v2.hpp"
 #include "../string_common/StringOp.hpp"

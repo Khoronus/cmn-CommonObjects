@@ -31,9 +31,9 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "../../commonobjects/io/RGBDReader.hpp"
-#include "../../commonobjects/io/RGBDWriter.hpp"
-#include "../../commonobjects/io/RGBDRecorder.hpp"
+//#include "../../commonobjects/io/RGBDReader.hpp"
+//#include "../../commonobjects/io/RGBDWriter.hpp"
+//#include "../../commonobjects/io/RGBDRecorder.hpp"
 
 void test_writer() {
 

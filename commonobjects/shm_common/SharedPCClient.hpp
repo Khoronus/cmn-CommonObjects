@@ -26,9 +26,14 @@
 #define COMMONOBJECTS_SHMCOMMON_SHAREDPCCLIENT_HPP__
 
 #include <map>
+#include <thread>
+#include <mutex>
+#include <memory>
 
 #include "doc_managedmemory_shared_data_v2.hpp"
 #include "../string_common/StringOp.hpp"
+
+#include <Windows.h>
 
 namespace co
 {

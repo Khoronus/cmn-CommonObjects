@@ -81,6 +81,8 @@ CREATE_EXAMPLE(enum_enum_helper "enum_enum_helper.cpp" "")
 CREATE_EXAMPLE(io_calibrationpointsio "io_calibrationpointsio.cpp" "")
 CREATE_EXAMPLE(io_pclviewerionaive "io_pclviewerionaive.cpp" "")
 CREATE_EXAMPLE(io_rgbd "io_rgbd.cpp" "")
+CREATE_EXAMPLE(shm_common_SharedPCServer "shm_common_SharedPCServer.cpp" "")
+CREATE_EXAMPLE(shm_common_SharedPCClient "shm_common_SharedPCClient.cpp" "")
 
 #######################################################################
 if (USE_STATIC)
