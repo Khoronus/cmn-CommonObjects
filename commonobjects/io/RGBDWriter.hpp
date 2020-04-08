@@ -105,22 +105,22 @@ public:
 		set_save_mode(sm_HiRes);
 
 		// Add the record to save on a separate thread
-		RecordContainerData rcd0, rcd1, rcd2;
+		storedata::RecordContainerData rcd0, rcd1, rcd2;
 		// copy the image
 		std::string fname = path + "\\frame_" +
 			std::to_string(num_frame_save) + ".data";
 		rcd0.copyFrom(color, color_size);
-		record_container_[0].push(fname, rcd0);
+		record_container_[0].push(fname, rcd0, false, -1);
 		// copy the xyz
 		fname = path + "\\xyz_" +
 			std::to_string(num_frame_save) + ".data";
 		rcd1.copyFrom(vertices, vertices_size);
-		record_container_[1].push(fname, rcd1);
+		record_container_[1].push(fname, rcd1, false, -1);
 		// copy the uv
 		fname = path + "\\uv_" +
 			std::to_string(num_frame_save) + ".data";
 		rcd2.copyFrom(tex_coords, tex_coords_size);
-		record_container_[2].push(fname, rcd2);
+		record_container_[2].push(fname, rcd2, false, -1);
 	}
 
 	/** @brief It tries to add a new frame to the set
@@ -144,7 +144,7 @@ public:
 		set_save_mode(sm_LoRes);
 
 		// Add the record to save on a separate thread
-		RecordContainerData rcd0, rcd1;
+		storedata::RecordContainerData rcd0, rcd1;
 		// copy the image
 		//int n_zero = 6;
 		//std::string old_string = std::to_string(num_frame_save);
@@ -153,10 +153,10 @@ public:
 			co::text::StringOp::append_front_chars(6, num_frame_save, '0');
 		std::string fname = path + "\\color\\" + new_string + ".data";
 		rcd0.copyFrom(color, color_size);
-		record_container_[0].push(fname, rcd0);
+		record_container_[0].push(fname, rcd0, false, -1);
 		fname = path + "\\depth\\" + new_string + ".data";
 		rcd1.copyFrom(depth, depth_size);
-		record_container_[1].push(fname, rcd1);
+		record_container_[1].push(fname, rcd1, false, -1);
 	}
 
 	/** @brief It tries to add a new frame to the set
@@ -183,7 +183,7 @@ public:
 		set_save_mode(sm_Encoded);
 
 		// Add the record to save on a separate thread
-		RecordContainerData rcd0, rcd1;
+		storedata::RecordContainerData rcd0, rcd1;
 		// copy the image
 		//int n_zero = 6;
 		//std::string old_string = std::to_string(num_frame_save);
@@ -197,13 +197,13 @@ public:
 			width, CV_8UC3, const_cast<void*>(color)),
 			buf);
 		rcd0.copyFrom(&buf[0], buf.size());
-		record_container_[0].push(fname, rcd0);
+		record_container_[0].push(fname, rcd0, false, -1);
 		fname = path + "\\depth\\" + new_string + ".png";
 		cv::imencode(".png", cv::Mat(height,
 			width, CV_16UC1, const_cast<void*>(depth)),
 			buf);
 		rcd1.copyFrom(&buf[0], buf.size());
-		record_container_[1].push(fname, rcd1);
+		record_container_[1].push(fname, rcd1, false, -1);
 	}
 
 	/** @brief 
@@ -222,17 +222,17 @@ public:
 		set_save_mode(sm_Encoded);
 
 		// Add the record to save on a separate thread
-		RecordContainerData rcd0, rcd1;
+		storedata::RecordContainerData rcd0, rcd1;
 		// copy the image
 		std::string new_string =
 			co::text::StringOp::append_front_chars(6, num_frame_save, '0');
 		std::string fname = path + "\\color\\" + new_string + ".rgb_raw";
 
 		rcd0.copyFrom(const_cast<void*>(color), width * height * 3 * sizeof(unsigned char));
-		record_container_[0].push(fname, rcd0);
+		record_container_[0].push(fname, rcd0, false, -1);
 		fname = path + "\\depth\\" + new_string + ".depth_raw";
 		rcd1.copyFrom(const_cast<void*>(depth), width * height * sizeof(unsigned short));
-		record_container_[1].push(fname, rcd1);
+		record_container_[1].push(fname, rcd1, false, -1);
 	}
 
 	/** @brief It force the flush of the buffers
@@ -252,7 +252,7 @@ private:
 
 	/** @brief Container with the data to record
 	*/
-	std::map<int, RecordContainer> record_container_;
+	std::map<int, storedata::RecordContainerFile> record_container_;
 
 	// If true, it saves the data at highest quality possible
 	// It requires a larger amount of data
