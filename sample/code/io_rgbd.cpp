@@ -38,8 +38,11 @@
 
 void test_writer() {
 
-	co::sanity::FolderManager::folder_sanity_check("color");
-	co::sanity::FolderManager::folder_sanity_check("depth");
+	co::sanity::FolderManager::folder_sanity_check("dataHiRes");
+	co::sanity::FolderManager::folder_sanity_check("dataLoRes\\color");
+	co::sanity::FolderManager::folder_sanity_check("dataLoRes\\depth");
+	co::sanity::FolderManager::folder_sanity_check("dataBinary\\color");
+	co::sanity::FolderManager::folder_sanity_check("dataBinary\\depth");
 
 	/** @brief Recorder for the RGBD data
 */
@@ -47,21 +50,22 @@ void test_writer() {
 
 	// dummy intrinsic
 	std::vector<std::string> v_intrinsic;
-	v_intrinsic.push_back("640 480 110 110 320 240"); 
-	v_intrinsic.push_back("0.1 0.2 0.3");
-	rgbd_recorder.save_intrinsic(".", v_intrinsic);
+	v_intrinsic.push_back("640 480"); 
+	v_intrinsic.push_back("644.557129 644.557129 315.785370 244.418182");
+	v_intrinsic.push_back("0.000000 0.000000 0.000000 0.000000 0.000000");
 
 	// These record mode are left  only for legacy.
 	// For faster recording, please use !do_use_bagfile
 	// Record as hi-res
 	// An example to read the file is in eLearningElaboration/sample/ExtractPointCloud
 
-	std::string path_where_to_save = ".";
+	std::string path_where_to_save = "dataHiRes/";
 	int num_frame_save = 0;
 	cv::Mat color(480, 640, CV_8UC3);
 	cv::Mat depth(480, 640, CV_32FC1);
 	std::vector<float> vertices(300);
 	std::vector<float> texture_coordinates(200);
+	rgbd_recorder.save_intrinsic(path_where_to_save, v_intrinsic);
 	rgbd_recorder.add_rgbxyzuv_as_binary(
 		path_where_to_save, num_frame_save,
 		color.data,
@@ -71,7 +75,9 @@ void test_writer() {
 		&texture_coordinates.data()[0],
 		texture_coordinates.size() * sizeof(float));
 	// Record as lo-res
-	num_frame_save = 1;
+	path_where_to_save = "dataLoRes/";
+	num_frame_save = 0;
+	rgbd_recorder.save_intrinsic(path_where_to_save, v_intrinsic);
 	rgbd_recorder.save_rgbd_as_binary(
 		path_where_to_save, num_frame_save,
 		color.data,
@@ -79,7 +85,9 @@ void test_writer() {
 		depth.data,
 		depth.rows * depth.cols * 1 * sizeof(unsigned short));
 	// Record as encoded
-	num_frame_save = 2;
+	path_where_to_save = "dataBinary/";
+	num_frame_save = 0;
+	rgbd_recorder.save_intrinsic(path_where_to_save, v_intrinsic);
 	rgbd_recorder.save_rgbd_as_binary(
 		path_where_to_save, num_frame_save,
 		color.data,
@@ -103,60 +111,56 @@ void save_points_info(
 	std::cout << "File saved: " << fname_reference << std::endl;
 }
 
+void test_extract_depth() {
+	std::cout << "test_extract_depth: " << __DATE__ << std::endl;
+	cv::Mat depth;
+	co::io::RGBDReader<uchar>::extract_depth("dataBinary\\depth\\000000.depth_raw", 
+		cv::Size(640, 480), depth);
+}
 
-void test_reader() {
-	std::cout << "read_rgbd_recorded: " << __DATE__ << std::endl;
+void test_read_saved_data_hires() {
+	std::cout << "test_read_saved_data_hires: " << __DATE__ << std::endl;
 
-	std::string path_where_to_read = ".";
+	std::string path_where_to_read = "dataHiRes/";
+	int current_frame = 0;
+	int bin = 10; // frequency of the xyz data estimated (min 1)
+	cv::Mat depth;
+	co::io::RGBDReader<uchar>::test_read_saved_data_hires(path_where_to_read, 
+		cv::Size(640, 480), bin, 0, 1);
+}
+
+
+void test_create_3Dpointcloud_lores() {
+	std::cout << "test_create_3Dpointcloud_lores: " << __DATE__ << std::endl;
+
+	std::string path_where_to_read = "dataLoRes/";
 	int current_frame = 0;
 	int bin = 10; // frequency of the xyz data estimated (min 1)
 	std::string file_where_to_save = "sample_rgbd.txt";
 	std::string file_where_to_save_xml = "sample_rgbd.xml";
 
-	cv::Mat depth;
-	co::io::RGBDReader<uchar>::extract_depth(".\\depth\\000002.depth_raw", cv::Size(640, 480), depth);
-	
-	// Example
-	//std::string path_where_to_read = "F:\\20190711\\position2\\20190711_111504";
-	//int current_frame = 100;
-	//int bin = 5;
-	//std::string path_where_to_save = "PCL3D0.txt";
-	//std::string path_where_to_save_xml = "PCL3D0.xml";
-
-
-	// The current frame is smaller than the stop frame.
-	std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
-	if (co::io::RGBDReader<uchar>::create_3Dpointcloud_imgsource(
-		path_where_to_read,
-		current_frame, bin, p3dcolor)) {
-		std::cout << "[+] " << path_where_to_read << std::endl;
-		co::io::PCLViewerIONaive<cv::Point3f>::save_naive_pointcloud(
-			file_where_to_save, cv::Point3f(0, 0, 0), cv::Point3f(0, 0, 0),
-			p3dcolor);
-	}
-	else {
-		std::cout << "[-] " << path_where_to_read << std::endl;
-	}
-
-	// It saves the current image and 3D representation in a xml format
-	cv::Mat rgb, xyz;
-	if (co::io::RGBDReader<uchar>::create_3Dpointcloud_imgsource(
-		path_where_to_read,
-		current_frame, bin, rgb, xyz)) {
-		std::cout << "[+] " << path_where_to_read << std::endl;
-		save_points_info(file_where_to_save_xml, rgb, xyz);
-	}
-	else {
-		std::cout << "[-] " << path_where_to_read << std::endl;
-	}
+	cv::Mat rgb, map3D;
+	co::io::RGBDReader<uchar>::create_3Dpointcloud_lores(path_where_to_read, 
+		cv::Size(640, 480), 0, rgb, map3D);
 }
 
+void test_binary() {
+	std::cout << "test_binary: " << __DATE__ << std::endl;
+	std::cout << "check: eLearning::TransformSourceListBinary2EncodeImage" << 
+		std::endl;
+}
+
+
 void test_recorder() {
-	std::cout << "RGBDRecorder is deprecated" << std::endl;
+	std::cout << "test_recorder" << std::endl;
 }
 
 void main() {
 	std::cout << "io_rgbd" << std::endl;
 	test_writer();
-	test_reader();
+	test_extract_depth();
+	test_read_saved_data_hires();
+	test_read_saved_data_hires();
+	test_binary();
+	test_recorder();
 }

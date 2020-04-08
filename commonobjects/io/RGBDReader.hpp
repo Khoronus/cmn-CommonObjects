@@ -62,7 +62,7 @@ public:
 	*/
 	static void test_read_saved_data_hires(
 		const std::string &path,
-		const cv::Size &size,
+		const cv::Size &size, int bin,
 		int fromID, int toID) {
 
 		for (int i = fromID; i < toID; ++i) {
@@ -78,7 +78,7 @@ public:
 			extract_xyzuv(
 				path + "xyz_" + std::to_string(i) + ".data",
 				path + "uv_" + std::to_string(i) + ".data",
-				size, uv, xyz);
+				size, bin, uv, xyz);
 			std::cout << "XYZ: " << xyz.size() << std::endl;
 			// get the p3d with color
 			std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
@@ -205,7 +205,7 @@ public:
 			//std::string new_string =
 			//	std::string(n_zero - old_string.length(), '0') + old_string;
 			std::string new_string =
-				co::string::StringOp::append_front_chars(6, i, '0');
+				co::text::StringOp::append_front_chars(6, i, '0');
 			// read image
 			std::string fname = path + "\\color\\" + new_string + ".data";
 			extract_rgb(fname, size, rgb);

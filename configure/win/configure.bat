@@ -10,12 +10,12 @@ set path_yolo_lib_tmp=D:/workspace/programs/ThirdPartyLib/darknet/build/release
 set path_cuda_tmp=C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0
 set path_openpose_tmp=D:/workspace/programs/ThirdPartyLib/openpose
 set path_concurrentqueue_tmp=D:/workspace/programs/ThirdPartyLib/concurrentqueue
-set path_storedata_tmp=D:/workspace/programs/MyLib/StoreData
-set path_cmnuniverse_tmp=D:/workspace/programs/MyLib/CmnUniverse
-set path_common_tmp=D:/workspace/programs/MyLib/CommonObjects
+set path_storedata_tmp=D:/workspace/programs/MyLib/cmn-StoreData
+set path_cmnuniverse_tmp=D:/workspace/programs/MyLib/cmn-CmnUniverse
+set path_common_tmp=D:/workspace/programs/MyLib/cmn-CommonObjects
 set path_cvplot_tmp=D:/workspace/programs/ThirdPartyLib/cvplot
 set path_freeglut_tmp=D:/workspace/programs/ThirdPartyLib/freeglut-3.0.0
-set path_skeleton_tmp=D:/workspace/programs/MyProg/HumanBodyAnalyzer/src/HumanBodyAnalyzer
+set path_skeleton_tmp=D:/workspace/programs/MyLib/cmn-HumanBodyAnalyzer/src/HumanBodyAnalyzer
 
 @echo off
 ECHO set opencv path (i.e. %path_opencv_tmp%)
