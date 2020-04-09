@@ -1,0 +1,2 @@
+"Projects build result [==0 success, >0 error]" 
+"D:\workspace\programs\MyLib\cmn-CommonObjects\configure\win\..\..\sample\build\sample.sln" Exit Code is 0 
