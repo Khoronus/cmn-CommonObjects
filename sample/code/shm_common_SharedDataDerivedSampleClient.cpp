@@ -95,12 +95,9 @@ private:
 	}
 };
 
-
-
-//-----------------------------------------------------------------------------
-int main()
-{
-
+/** @brief Test the client
+*/
+int test_client() {
 	co::shm::SharedDataDerivedSample shared_data_client;
 	std::string name_shm = "MySharedMemory";
 	if (!shared_data_client.detect(name_shm)) {
@@ -140,7 +137,7 @@ int main()
 
 		// image used to close the program
 		size_t size = 0;
-		cv::Mat m(rows, cols, CV_8UC3, 
+		cv::Mat m(rows, cols, CV_8UC3,
 			shared_data_client.get_object_ptr(key_image, size));
 		std::cout << "size: " << size << std::endl;
 		bool end_loop = false;
@@ -162,4 +159,78 @@ int main()
 
 	shared_data_client.stop();
 	return 0;
+}
+
+
+/** @brief Test the client
+*/
+int test_client_sycn() {
+	co::shm::SharedDataDerivedSample shared_data_client;
+	std::string name_shm = "MySharedMemory";
+	if (!shared_data_client.detect(name_shm)) {
+		std::cout << "Unable to detect: " << name_shm << std::endl;
+		return 1;
+	}
+	CallbackElaboration callback_elaboration;
+	// bind the function
+	shared_data_client.registerCallback(std::bind(&CallbackElaboration::my_func,
+		std::ref(callback_elaboration), std::placeholders::_1, std::placeholders::_2));
+
+	// Get the object IDs
+	size_t key_image = shared_data_client.get_key_id("rgb");
+	if (key_image == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the image" << std::endl;
+		return 1;
+	}
+	size_t key_req0 = shared_data_client.get_key_id("req0");
+	if (key_req0 == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the key_instruction" << std::endl;
+		return 1;
+	}
+
+	// start the listening process
+	shared_data_client.start(std::vector<size_t>{key_req0},
+		co::shm::kThreadPriorityBackgroundBegin);
+
+	try {
+		cv::VideoCapture vc(0);
+		if (!vc.isOpened()) return 1;
+
+		// Get the image information
+		int cols = 0, rows = 0, channels = 0;
+		shared_data_client.get_image_size("rgb", cols, rows, channels);
+		std::cout << "Expected image [" << cols << "," << rows << "," <<
+			channels << "]" << std::endl;
+
+		// image used to close the program
+		size_t size = 0;
+		cv::Mat m(rows, cols, CV_8UC3,
+			shared_data_client.get_object_ptr(key_image, size));
+		std::cout << "size: " << size << std::endl;
+		bool end_loop = false;
+		do {
+			vc >> m;
+			cv::imshow("client", m);
+			if (cv::waitKey(10) == 27) end_loop = true;
+
+			if (callback_elaboration.do_record()) {
+				std::cout << "record_data" << std::endl;
+				std::cout << "path: " << callback_elaboration.path_where_to_save() << std::endl;;
+			}
+		} while (!end_loop);
+	}
+	catch (boost::interprocess::interprocess_exception &ex) {
+		std::cout << ex.what() << std::endl;
+		return 1;
+	}
+
+	shared_data_client.stop();
+	return 0;
+}
+
+//-----------------------------------------------------------------------------
+int main()
+{
+	//test_client();
+	test_client_sycn();
 }
