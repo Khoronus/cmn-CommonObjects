@@ -15,12 +15,11 @@
 * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *
-* @author uknown
+* @author Alessandro Moro (alessandromoro.italy@gmail.com)
 * @bug No known bugs.
-* @version 0.3.0.0
+* @version 0.4.0.0
 *
 */
-
 
 #ifndef COMMONOBJECTS_SHMCOMMON_SHAREDDATABASE_HPP__
 #define COMMONOBJECTS_SHMCOMMON_SHAREDDATABASE_HPP__
@@ -75,7 +74,7 @@ class SharedDataBase
 {
 public:
 
-	SharedDataBase() : c_is_ready_(false), memory_to_allocate_bytes_(0) {}
+	SharedDataBase() : /*c_is_ready_(false), */memory_to_allocate_bytes_(0) {}
 
 	~SharedDataBase() {
 		stop();
@@ -87,6 +86,7 @@ public:
 	*/
 	virtual int parse(
 		const std::string &name_shm,
+		const std::string &name_object_shm,
 		const std::string &msg,
 		bool do_allocate = true) = 0;
 
@@ -96,15 +96,23 @@ public:
 
 	@param[in] name_shm Shared memory name
 	*/
-	bool detect(const std::string &name_shm) {
+	bool detect(
+		const std::string &name_shm,
+		const std::string &name_object_shm) {
 
 		// copy the name of the shared memory
 		name_shm_ = name_shm;
 
-		if (!smm_.detect(name_shm_)) {
+		if (!smm_.detect(name_shm_, name_object_shm)) {
 			std::cout << "Unable to detect: " << name_shm << std::endl;
 			return false;
 		}
+
+		// It creates the mutex and condition variable for whole process
+		mtx_ =
+			smm_.find_or_create_mutex("mtx");
+		cnd_ =
+			smm_.find_or_create_condition("cnd");
 
 		// It creates the mutex and condition variable for the existing
 		// objects
@@ -151,7 +159,10 @@ public:
 	}
 
 	/** @brief If started from the function "start()" it will run in a
-	separated thread.
+		separated thread. 
+	
+		It will run in a separated process for a generic operation.
+		An implementation may call the callback without specific ID.
 	*/
 	virtual void process(int thread_priority) = 0;
 
@@ -198,11 +209,12 @@ public:
 	}
 
 	/** @brief It notifies that the data has been pushed (process)
-*/
+	*/
 	void notify() {
-		std::unique_lock<std::mutex> lk(c_mutex_);
-		c_is_ready_ = true;
-		c_cv_.notify_one();
+		cnd_->notify_all();
+	//	std::unique_lock<std::mutex> lk(c_mutex_);
+	//	c_is_ready_ = true;
+	//	c_cv_.notify_one();
 	}
 
 	/** @brief Notify for the objects allocated
@@ -220,8 +232,10 @@ public:
 	}
 
 	/** @brief It push a source image in the shared memory
+
+		@previous_name get_object_values
 	*/
-	bool get_object_values(
+	bool get_object_Vecd(
 		const std::string &name,
 		std::vector<double> &values) {
 		size_t key_id = get_key_id(name);
@@ -242,7 +256,9 @@ protected:
 	SharedMemoryManager smm_;
 	std::string name_shm_;
 
-	std::vector<size_t> v_; // container with the bytes for each object
+	/** @brief container with the bytes to instantiate for each object
+	*/
+	std::vector<size_t> v_;
 	std::vector<std::vector<int>> information_size_;
 	/** @brief Total allocated memory
 	*/
@@ -264,15 +280,18 @@ protected:
 	*/
 	registration_callback_function_shared m_callback_;
 
-	/** @brief It guarantee that the passed data is valid
-	*/
-	std::mutex c_mutex_;
-	/** @brief Condition variable
-	*/
-	std::condition_variable c_cv_;
-	/** @brief To avoid spurious wakeup
-	*/
-	bool c_is_ready_;
+	///** @brief It guarantee that the passed data is valid
+	//*/
+	//std::mutex c_mutex_;
+	///** @brief Condition variable
+	//*/
+	//std::condition_variable c_cv_;
+	///** @brief To avoid spurious wakeup
+	//*/
+	//bool c_is_ready_;
+	boost::interprocess::interprocess_mutex *mtx_;
+	boost::interprocess::interprocess_condition *cnd_;
+
 
 	/** @brief Container with the index of the object
 

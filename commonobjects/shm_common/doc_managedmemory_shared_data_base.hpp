@@ -17,17 +17,19 @@
 *
 * @author Alessandro Moro (alessandromoro.italy@gmail.com)
 * @bug No known bugs.
-* @version 0.3.0.0
-* @version_date 20181017
+* @version 0.4.0.0
+* @version_date 20200413
 *
 * @known issues:
 * > not wake up immediately (windows)
 *   https://github.com/boostorg/interprocess/issues/43
 *
+*
+* @previous name COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_BASE_HPP__
 */
 
-#ifndef COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_V3_HPP__
-#define COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_V3_HPP__
+#ifndef COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_BASE_HPP__
+#define COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_BASE_HPP__
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
@@ -91,6 +93,8 @@ public:
 		ptr_size_ = ptr_size;
 	}
 
+	/** @brief Access to the pointer to the allocated shared memory
+	*/
 	void* ptr() const {
 		return ptr_.get();
 	}
@@ -155,9 +159,11 @@ public:
 	/** @brief Create the shared memory
 
 	@param[in] shared_memory_name The name associated to the shared memory.
-	@param[in] size The full instantiated memory.
+	@param[in] memory_to_instantiate_size The full instantiated memory.
 	*/
-	bool create(const std::string &shared_memory_name, int size) {
+	bool create(
+		const std::string &shared_memory_name, 
+		int memory_to_instantiate_size) {
 
 		shared_memory_name_ = shared_memory_name;
 
@@ -173,18 +179,23 @@ public:
 
 		//Create a managed shared memory
 		boost::interprocess::managed_shared_memory managed_shm_tmp(boost::interprocess::create_only,
-			shared_memory_name_.c_str(), size);
+			shared_memory_name_.c_str(), memory_to_instantiate_size);
 
 		//Check size
-		assert(managed_shm_tmp.get_size() == size);
+		assert(managed_shm_tmp.get_size() == memory_to_instantiate_size);
 
 		std::swap(managed_shm_tmp, managed_shm_);
 		return true;
 	}
 
 	/** @brief Detect an existing shared memory
+
+		@param[in] shared_memory_name Name of the shared memory
+		@param[in] shared_object_name Name of the shared object/s ("SharedObject")
 	*/
-	bool detect(const std::string &shared_memory_name) {
+	bool detect(
+		const std::string &shared_memory_name,
+		const std::string &shared_object_name) {
 
 		try
 		{
@@ -192,15 +203,20 @@ public:
 			shared_memory_name_ = shared_memory_name;
 			//Create a managed shared memory
 			std::cout << "Try to detect shared memory: " <<
-				shared_memory_name << std::endl;
+				shared_memory_name_ << std::endl;
 
-			boost::interprocess::managed_shared_memory managed_shm_tmp(boost::interprocess::open_only,
+			shared_object_name_ = shared_object_name;
+			std::cout << "Try to detect shared object: " <<
+				shared_object_name_ << std::endl;
+
+			boost::interprocess::managed_shared_memory managed_shm_tmp(
+				boost::interprocess::open_only,
 				shared_memory_name_.c_str());
 
-			std::cout << "Swap" << std::endl;
+			std::cout << "Swap previous managed shared memory" << std::endl;
 			std::swap(managed_shm_tmp, managed_shm_);
 
-			auto tmp = managed_shm_.find<SharedObject>("SharedObject");
+			auto tmp = managed_shm_.find<SharedObject>(shared_object_name_.c_str());
 			if (tmp.first == nullptr) return false;
 			shared_object_ = tmp.first;
 			num_items_ = tmp.second;
@@ -224,26 +240,41 @@ public:
 		return false;
 	}
 
-	/** @brief Instantiate n new objects
+	/** @brief Instantiate n new objects.
+
+		The object memory ptr (raw memory) is allocated at this point and it 
+		is different from the memory used by the string or vectors 
+		(integer/double).
 
 		@param[in] index_size Instantiate n new objects with m objects of k bytes.
 	*/
-	bool instantiate(std::vector<size_t> &index_size) {
+	bool instantiate(
+		const std::string &shared_object_name,
+		std::vector<size_t> &index_size) {
+
+		shared_object_name_ = shared_object_name;
+		std::cout << "Try to instantiate shared object: " <<
+			shared_object_name_ << std::endl;
 
 		//An allocator convertible to any allocator<T, segment_manager_t> type
 		void_allocator alloc_inst(managed_shm_.get_segment_manager());
 
-		//Construct a named object
-		shared_object_ = managed_shm_.find_or_construct<SharedObject>("SharedObject")[index_size.size()](alloc_inst);
+		// Construct an array of named objects
+		// The total number of objects is instantiated and fix
+		shared_object_ = managed_shm_.find_or_construct<SharedObject>(
+			shared_object_name_.c_str())[index_size.size()](alloc_inst);
 
+		// It allocates the pointer memory (raw memory) for each object.
 		for (size_t i = 0; i < index_size.size(); ++i)
 		{
 			// Allocate n bytes
-			boost::interprocess::offset_ptr<void> o_ptr = managed_shm_.allocate(index_size[i], std::nothrow);
+			boost::interprocess::offset_ptr<void> o_ptr = managed_shm_.allocate(
+				index_size[i], std::nothrow);
 			if (o_ptr == nullptr) return false;
 			shared_object_[i].set_ptr(o_ptr, index_size[i]);
 		}
 
+		// Total number of objects
 		num_items_ = index_size.size();
 
 		return true;
@@ -254,7 +285,7 @@ public:
 	bool deallocate() {
 		std::cout << "deallocate" << std::endl;
 		std::pair<SharedObject*, std::size_t> p =
-			managed_shm_.find<SharedObject>("SharedObject");
+			managed_shm_.find<SharedObject>(shared_object_name_.c_str());
 
 		for (size_t i = 0; i < p.second; ++i)
 		{
@@ -267,8 +298,10 @@ public:
 	}
 
 	/** @brief Push new information
+
+		@previous push_info
 	*/
-	void push_info(size_t id, const std::string &msg, std::vector<int> &value) {
+	void copyFrom(size_t id, const std::string &msg, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -282,8 +315,10 @@ public:
 		}
 	}
 	/** @brief It push a new vector data
+
+		@previous push_info
 	*/
-	void push_info(size_t id, std::vector<int> &value) {
+	void copyFrom_Veci(size_t id, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data
@@ -297,8 +332,10 @@ public:
 
 	/** @brief Modify the current information (without change the size of the
                object)
+
+		@previous modify_info
 	*/
-	void modify_info(size_t id, std::vector<int> &value) {
+	void modify_Veci(size_t id, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			if (shared_object_[id].int_vector_.size() == value.size()) {
@@ -335,7 +372,32 @@ public:
 
 	/** @brief Push new information
 	*/
-	void set(size_t id, const std::string &msg) {
+	std::string object_type(size_t id) {
+		if (id >= 0 && id < num_items_)
+		{
+			return std::string(shared_object_[id].object_type_.begin(),
+				shared_object_[id].object_type_.end());
+		}
+		return std::string();
+	}
+
+	/** @brief Push new information
+	*/
+	std::string object_name(size_t id) {
+		if (id >= 0 && id < num_items_)
+		{
+			return std::string(shared_object_[id].object_name_.begin(),
+				shared_object_[id].object_name_.end());
+		}
+		return std::string();
+	}
+
+
+	/** @brief Push new information
+
+		@previous set
+	*/
+	void set_string(size_t id, const std::string &msg) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -344,28 +406,10 @@ public:
 	}
 
 	/** @brief Push new information
-	*/
-	std::string get(size_t id) {
-		if (id >= 0 && id < num_items_)
-		{
-			return std::string(shared_object_[id].char_string_.begin(),
-				shared_object_[id].char_string_.end());
-		}
-		return std::string();
-	}
-	std::string get(const std::string &key) {
-		int id = key_id_[key];
-		if (id >= 0 && id < num_items_)
-		{
-			return std::string(shared_object_[id].char_string_.begin(),
-				shared_object_[id].char_string_.end());
-		}
-		return std::string();
-	}
 
-	/** @brief Push new information
+		@previous set
 	*/
-	void set(size_t id, const std::vector<double> &value) {
+	void copyFrom_Vecd(size_t id, const std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -384,8 +428,10 @@ public:
 	}
 
 	/** @brief Push new information
+
+		@previous set
 	*/
-	void set(size_t id, const std::vector<int> &value) {
+	void copyFrom_Veci(size_t id, const std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -405,8 +451,10 @@ public:
 
 
 	/** @brief Push new information
+
+		@previous_name push_info
 	*/
-	void push_info(size_t id, const std::string &msg, std::vector<double> &value) {
+	void copyFrom(size_t id, const std::string &msg, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -420,26 +468,47 @@ public:
 		}
 	}
 
-	/** @brief It push a new vector data
+	/** @brief It push a new vector data.
+
+		It push a new vector data. It modifies the size of the object.
+		@Important The internal vector is resized
+		@previous_name push_info
 	*/
-	void push_info(size_t id, std::vector<double> &value) {
+	void copyFrom_Vecd(size_t id, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
-			// Fill the new shared string
-			// Clear and fill the new vector data
-			shared_object_[id].double_vector_.clear();
-			for (auto it : value)
-			{
-				shared_object_[id].double_vector_.push_back(it);
+			// Clear and fill the new vector data if the size is different
+			if (value.size() != shared_object_[id].int_vector_.size()) {
+				// Fill the new shared string
+				// Clear and fill the new vector data
+				shared_object_[id].double_vector_.clear();
+				for (auto it : value)
+				{
+					shared_object_[id].double_vector_.push_back(it);
+				}
+			} else {
+				for (size_t i = 0; i < value.size(); ++i) {
+					shared_object_[id].double_vector_[i] = value[i];
+				}
 			}
+
+			//// Fill the new shared string
+			//// Clear and fill the new vector data
+			//shared_object_[id].double_vector_.clear();
+			//for (auto it : value)
+			//{
+			//	shared_object_[id].double_vector_.push_back(it);
+			//}
 		}
 	}
 
 
 	/** @brief Modify the current information (without change the size of the 
 	           object)
+
+		@previous_name modify_info
 	*/
-	void modify_info(size_t id, std::vector<double> &value) {
+	void modify_Vecd(size_t id, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			if (shared_object_[id].double_vector_.size() == value.size()) {
@@ -451,14 +520,46 @@ public:
 	}
 
 	/** @brief It sets the pointer data information
+
+		@previous_name set_ptr
 	*/
-	void set_ptr(size_t id, void *ptr, size_t bytes) {
+	void copyFrom(size_t id, void *ptr, size_t bytes) {
 		if (id >= 0 && id < num_items_) {
 			memcpy(shared_object_[id].ptr(), ptr, bytes);
 		}
 	}
 
+	/** @brief Get string content
+
+		@previous get
+	*/
+	std::string get_string(size_t id) {
+		if (id >= 0 && id < num_items_)
+		{
+			return std::string(shared_object_[id].char_string_.begin(),
+				shared_object_[id].char_string_.end());
+		}
+		return std::string();
+	}
+	/** @brief Get string content
+
+		@previous get
+	*/
+	std::string get_string(const std::string &key) {
+		int id = key_id_[key];
+		if (id >= 0 && id < num_items_)
+		{
+			return std::string(shared_object_[id].char_string_.begin(),
+				shared_object_[id].char_string_.end());
+		}
+		return std::string();
+	}
+
 	/** @brief It gets the pointer to the data information
+
+		@param[in] id Object to have access
+		@param[out] size Size of the valid memory data insert
+		@return Return a valid pointer if the object exists. nullptr otherwise.
 	*/
 	void* get_ptr(size_t id, size_t &size) {
 		if (id >= 0 && id < num_items_) {
@@ -468,7 +569,6 @@ public:
 		size = 0;
 		return nullptr;
 	}
-
 
 	/** @brief Direct access to a shared object
 	*/
@@ -503,6 +603,10 @@ private:
 	*/
 	std::string shared_memory_name_;
 
+	/** @brief Name of the shared object
+	*/
+	std::string shared_object_name_;
+
 	/** @brief It true it destroy the shared memory space. It is set when
 	instantiate.
 	*/
@@ -533,4 +637,4 @@ private:
 } // namespace shm
 } // namespace co
 
-#endif COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_V3_HPP__
+#endif COMMONOBJECTS_SHM_COMMON_DOC_MANAGEDMEMORY_SHAREDDATA_BASE_HPP__

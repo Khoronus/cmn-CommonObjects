@@ -80,9 +80,16 @@ public:
 	/** expected
 		type0,name0,params0|type1,name1,params1|...
 		the index of the object is in the order of the construct
+
+		The function allocates OR initialize a set of objects.
+		The standard use of the function is to call without do_allocate 
+		parameter (use default true).
+		The function estimates the memory to allocate, and a recoursive
+		call set the values.
 	*/
 	int parse(
 		const std::string &name_shm,
+		const std::string &name_object_shm,
 		const std::string &msg,
 		bool do_allocate = true) {
 
@@ -129,7 +136,7 @@ public:
 						// Set the key id
 						key_id.insert(std::make_pair(type, object_id));
 						// set the maximum number of points and other information
-						smm_.set(object_id, std::vector<int>({ num_points, 0 }));
+						smm_.copyFrom_Veci(object_id, std::vector<int>({ num_points, 0 }));
 						// set object type
 						smm_.set_object_type(object_id, type);
 						// set object name
@@ -150,7 +157,7 @@ public:
 						// Set the key id
 						key_id.insert(std::make_pair(type, object_id));
 						// set the maximum number of points and other information
-						smm_.set(object_id, std::vector<int>({
+						smm_.copyFrom_Veci(object_id, std::vector<int>({
 							num_skeletons * num_points_skeleton, 0,
 							num_points_skeleton }));
 						// set object type
@@ -181,8 +188,8 @@ public:
 						value.push_back(0); // frame_id
 						ready_status.clear();
 						ready_status.push_back(1);
-						smm_.push_info(object_id, type, value);
-						smm_.push_info(object_id, type, ready_status);
+						smm_.copyFrom(object_id, "image_info", value);
+						smm_.copyFrom(object_id, "ready_status", ready_status);
 						// set object type
 						smm_.set_object_type(object_id, type);
 						// set object name
@@ -211,7 +218,7 @@ public:
 					// i.e. instruction,2048
 					// the instruction size
 					int bytes = std::stoi(words2[2]);
-					v_.push_back(0); // set the image size
+					v_.push_back(0); // set the image size (no use raw memory, but need the object instantiation)
 					memory_to_allocate_bytes_ += bytes;
 					if (!do_allocate) {
 						// Set the key id
@@ -235,11 +242,16 @@ public:
 				return kSharedUnableToCreateSharedMemory;
 			}
 			// Instantiate the objects
-			smm_.instantiate(v_);
+			smm_.instantiate(name_object_shm, v_);
 			// parse the string again to instantiate the parameters
-			parse(name_shm, msg, false);
-		}
-		else {
+			parse(name_shm, name_object_shm, msg, false);
+		} else {
+			// It creates the mutex and condition variable for whole process
+			mtx_ =
+				smm_.find_or_create_mutex("mtx");
+			cnd_ =
+				smm_.find_or_create_condition("cnd");
+
 			// it creates the mutex and condition variable
 			for (size_t i = 0; i < smm_.num_items(); ++i) {
 				std::string name = "mtx" + std::to_string(i);
@@ -262,11 +274,7 @@ public:
 			   separated thread.
 	*/
 	void process(int thread_priority) {
-		boost::interprocess::interprocess_mutex *mtx =
-			smm_.find_or_create_mutex("mtx");
-		boost::interprocess::interprocess_condition *cnd =
-			smm_.find_or_create_condition("cnd");
-		boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock{ *mtx };
+		boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock{ *mtx_ };
 		bool noTimeout = true;
 
 		//Print messages until the other process marks the end
@@ -288,7 +296,7 @@ public:
 		do {
 			//double start = cv::getTickCount();
 			// In normal condition it should be locked
-			cnd->notify_all();
+			cnd_->notify_all();
 
 			//std::cout << "<> notify to server" << std::endl;
 			// callback here
@@ -300,7 +308,7 @@ public:
 
 			// wait?
 			boost::system_time timeout = boost::get_system_time() + boost::posix_time::milliseconds(kSharedDataProcessTimeout);
-			noTimeout = cnd->timed_wait(lock, timeout);
+			noTimeout = cnd_->timed_wait(lock, timeout);
 			// timeout
 			if (!noTimeout)
 			{
@@ -329,11 +337,11 @@ public:
 
 			//double stop = cv::getTickCount();
 			//double computation_time = (stop - start) / cv::getTickFrequency();
-			//std::cout << "ct(ms): " << computation_time << std::endl;
+			//std::cout << "ct(ms): " << computation_time << std::endl;			std::cout << "THERE" << std::endl;
 		} while (do_continue_);
 
 		// notify
-		cnd->notify_all();
+		cnd_->notify_all();
 		std::cout << "</SharedDataClient::process>" << std::endl;
 	}
 
@@ -419,12 +427,12 @@ public:
 		@param[in] obj_name The name of the object.
 		@param[in] msg The value to set.
 	*/
-	void push_data(const std::string &obj_name, const std::string &msg) {
+	void push_data_byname(const std::string &obj_name, const std::string &msg) {
 		size_t id_obj = get_key_id(obj_name);
 		if (id_obj != kInvalidKeyID &&
 			id_obj >= 0 && id_obj < smm_.num_items()) {
 			// update
-			smm_.set(id_obj, msg);
+			smm_.set_string(id_obj, msg);
 			// notify
 			vcnd_[id_obj]->notify_all();
 			//std::unique_lock<std::mutex> lk(c_mutex_);
@@ -437,10 +445,10 @@ public:
 
 	/** @brief It push new data
 	*/
-	void push_data(int id_obj, const std::string &msg) {
+	void push_data_byid(int id_obj, const std::string &msg) {
 		if (id_obj >= 0 && id_obj < smm_.num_items()) {
 			// update
-			smm_.set(id_obj, msg);
+			smm_.set_string(id_obj, msg);
 			// notify
 			vcnd_[id_obj]->notify_all();
 			//std::unique_lock<std::mutex> lk(c_mutex_);
@@ -563,7 +571,7 @@ public:
 	bool get_image_size(const std::string &object_name, 
 		int &cols, int &rows, int &channels) {
 		std::vector<double> values;
-		if (get_object_values(object_name, values)) {
+		if (get_object_Vecd(object_name, values)) {
 			cols = static_cast<int>(values[0]);
 			rows = static_cast<int>(values[1]);
 			channels = static_cast<int>(values[2]);

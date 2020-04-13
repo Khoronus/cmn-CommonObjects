@@ -48,7 +48,7 @@ public:
 	*/
 	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
 		// parse the command
-		parse(smm.get("req0"));
+		parse(smm.get_string("req0"));
 		//std::cout << "clientside: received" << std::endl;
 
 		//std::cout << "msg: " << smm.get("cmd0") << std::endl;
@@ -100,7 +100,7 @@ private:
 int test_client() {
 	co::shm::SharedDataDerivedSample shared_data_client;
 	std::string name_shm = "MySharedMemory";
-	if (!shared_data_client.detect(name_shm)) {
+	if (!shared_data_client.detect(name_shm, "SharedObject")) {
 		std::cout << "Unable to detect: " << name_shm << std::endl;
 		return 1;
 	}
@@ -162,18 +162,99 @@ int test_client() {
 }
 
 
+/** @brief Class to elaborate the received callbacks
+*/
+class CallbackElaborationSync
+{
+public:
+
+	CallbackElaborationSync() : do_record_(false) { num_frame = 0; }
+
+	/** @brief Callback functions
+	*/
+	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
+		std::cout << "client_side: received:" << object_id << std::endl;
+		std::string msg;
+		msg = smm.object_name(object_id);
+		std::cout << "client_side: smm object name:" << msg << std::endl;
+		msg = smm.get_string(object_id);
+		std::cout << "msg: " << msg << std::endl;
+		smm.set_string(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+		//shared_data_client->push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+		++num_frame;
+		//c_cv_->notify_all();
+		//*is_valid = true;
+		// parse the command
+		//parse(smm.get_string("req0"));
+		//std::cout << "clientside: received" << std::endl;
+
+		//std::cout << "msg: " << smm.get("cmd0") << std::endl;
+		////std::cout << "Received[" << id << "]: " << size << " bytes" << std::endl;
+		////cv::Mat m(480, 640, CV_8UC3, data);
+		////cv::imshow("mserver" + std::to_string(id), m);
+		////cv::waitKey(1);
+		//if (smm.get("cmd0") == "start_record") {
+		//	do_record_ = true;
+		//} else if (smm.get("cmd0") == "stop_record") {
+		//	do_record_ = false;
+		//}
+	}
+
+	/** @brief Do record?
+	*/
+	bool do_record() {
+		return do_record_;
+	}
+
+	std::string path_where_to_save() {
+		return path_where_to_save_;
+	}
+
+	co::shm::SharedDataDerivedSample *shared_data_client;
+	size_t key_cmd0;
+
+	//std::condition_variable *c_cv_;
+	bool *is_valid;
+
+	int num_frame = 0;
+
+private:
+
+	/** @brief Set by the callback, it informs if it is necessary to record.
+	*/
+	bool do_record_;
+
+	std::string path_where_to_save_;
+
+	/** @brief It parses the command received
+	*/
+	void parse(const std::string &msg) {
+		std::vector<std::string> words = co::text::StringOp::split(msg, '|');
+		if (words.size() > 0) {
+			if (words[0] == "record" && words.size() > 1) {
+				do_record_ = std::stoi(words[1]);
+			}
+			else if (words[0] == "path" && words.size() > 1) {
+				path_where_to_save_ = words[1];
+			}
+		}
+	}
+};
+
+
 /** @brief Test the client
 */
 int test_client_sycn() {
 	co::shm::SharedDataDerivedSample shared_data_client;
 	std::string name_shm = "MySharedMemory";
-	if (!shared_data_client.detect(name_shm)) {
+	std::string name_shared_object = "SharedObject";
+	if (!shared_data_client.detect(name_shm, name_shared_object)) {
 		std::cout << "Unable to detect: " << name_shm << std::endl;
 		return 1;
 	}
-	CallbackElaboration callback_elaboration;
+	CallbackElaborationSync callback_elaboration;
 	// bind the function
-	shared_data_client.registerCallback(std::bind(&CallbackElaboration::my_func,
+	shared_data_client.registerCallback(std::bind(&CallbackElaborationSync::my_func,
 		std::ref(callback_elaboration), std::placeholders::_1, std::placeholders::_2));
 
 	// Get the object IDs
@@ -187,12 +268,31 @@ int test_client_sycn() {
 		std::cout << "[e] Shared memory has memory for the key_instruction" << std::endl;
 		return 1;
 	}
+	size_t key_cmd0 = shared_data_client.get_key_id("cmd0");
+	if (key_cmd0 == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the key_cmd0" << std::endl;
+		return 1;
+	}
 
 	// start the listening process
 	shared_data_client.start(std::vector<size_t>{key_req0},
 		co::shm::kThreadPriorityBackgroundBegin);
+	shared_data_client.start(co::shm::kThreadPriorityBackgroundBegin);
 
 	try {
+
+		///** @brief It guarantee that the passed data is valid
+		//*/
+		//std::mutex c_mutex_;
+		///** @brief Condition variable
+		//*/
+		//std::condition_variable c_cv_;
+		///** @brief To avoid spurious wakeup
+		//*/
+		//bool c_is_ready_ = true;
+		//bool is_valid = true;
+
+
 		cv::VideoCapture vc(0);
 		if (!vc.isOpened()) return 1;
 
@@ -207,17 +307,42 @@ int test_client_sycn() {
 		cv::Mat m(rows, cols, CV_8UC3,
 			shared_data_client.get_object_ptr(key_image, size));
 		std::cout << "size: " << size << std::endl;
-		bool end_loop = false;
-		do {
-			vc >> m;
-			cv::imshow("client", m);
-			if (cv::waitKey(10) == 27) end_loop = true;
+		int kSharedDataProcessTimeout = 1000;
 
-			if (callback_elaboration.do_record()) {
-				std::cout << "record_data" << std::endl;
-				std::cout << "path: " << callback_elaboration.path_where_to_save() << std::endl;;
-			}
-		} while (!end_loop);
+		//callback_elaboration.c_cv_ = &c_cv_;
+		//callback_elaboration.is_valid = &is_valid;
+		callback_elaboration.shared_data_client = &shared_data_client;
+		callback_elaboration.key_cmd0 = key_cmd0;
+
+		//shared_data_client.push_data_byid(key_cmd0, "data_is_ready|-1");
+		std::cout << "input a key to quit" << std::endl;
+		int val = 0;
+		std::cin >> val;
+
+
+		//bool end_loop = false;
+		//int num_frame = 0;
+		//do {
+		//	//// Wait that some valid data is given
+		//	//std::unique_lock<std::mutex> lk(c_mutex_);
+		//	//while (!c_is_ready_)
+		//	//{
+		//	//	c_cv_.wait_for(lk, std::chrono::milliseconds(kSharedDataProcessTimeout));
+		//	//	if (!c_is_ready_) {
+		//	//		std::cout << "Spurious wake up!\n";
+		//	//		break;
+		//	//	}
+		//	//}
+		//	//// it stops the next time that the condition variable is detected
+		//	//c_is_ready_ = false;
+		//	//std::cout << "here: " << is_valid << std::endl;
+
+		//	vc >> m;
+		//	cv::imshow("client", m);
+		//	if (cv::waitKey(10) == 27) end_loop = true;
+		//	shared_data_client.push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+		//	++num_frame;
+		//} while (!end_loop);
 	}
 	catch (boost::interprocess::interprocess_exception &ex) {
 		std::cout << ex.what() << std::endl;
@@ -231,6 +356,6 @@ int test_client_sycn() {
 //-----------------------------------------------------------------------------
 int main()
 {
-	//test_client();
-	test_client_sycn();
+	test_client();
+	//test_client_sycn();
 }
