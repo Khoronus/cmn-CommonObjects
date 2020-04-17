@@ -202,7 +202,7 @@ public:
 					// in the ptr
 					// the labels size is in the int_vector
 					int byte_labels = 4096;
-					v_.push_back(byte_labels); // set the image size
+					v_.push_back(byte_labels); // set the message size
 					memory_to_allocate_bytes_ += byte_labels;
 					if (!do_allocate) {
 						// Set the key id

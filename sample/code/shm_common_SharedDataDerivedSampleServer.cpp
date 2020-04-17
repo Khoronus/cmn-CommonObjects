@@ -219,7 +219,18 @@ class CallbackElaborationSync
 {
 public:
 
-	CallbackElaborationSync() : do_record_(false) {}
+	CallbackElaborationSync() : do_record_(false) {
+		last_frame_process = -1;
+	}
+
+	void set_is_ready_to_write(bool is_ready_to_write) {
+		is_ready_to_write_ = is_ready_to_write;
+	}
+	bool is_ready_to_write() {
+		return is_ready_to_write_;
+	}
+
+	int last_frame_process;
 
 	/** @brief Callback functions
 
@@ -232,10 +243,26 @@ public:
 		std::cout << "server_side: smm object name:" << msg << std::endl;
 		msg = smm.get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
-		//shared_data_server->push_data_byid(key_req0, "echo from server:" + msg);
-		//cv::imshow("img_recv", img_recv);
-		//cv::waitKey(1);
-		//std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		auto words = co::text::StringOp::split(msg, '|');
+		int num_frame_src = std::stoi(words[1]);
+		if (num_frame_src != last_frame_process) {
+			std::cout << "PROCESS" << std::endl;
+			last_frame_process = num_frame_src;
+			//shared_data_server->push_data_byid(key_req0, "echo from server:" + msg);
+			cv::imshow("img_recv", img_recv);
+			cv::waitKey(1);
+			//std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+			// modify yolo
+			size_t key_yolo = shared_data_server->get_key_id("objdet");
+			std::vector<int> vint = { 1, 2, 1 };
+			std::vector<double> vdouble = { 0.4, 0.2, 0.3, 0.2, 0.1, 0.5, 0.4, 0.6, 0.1, 0.2, 0.7, 0.1, 0.8, 0.3, 0.15 };
+			smm.copyFrom_Veci(key_yolo, vint);
+			smm.copyFrom_Vecd(key_yolo, vdouble);
+
+			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
+		}
+		is_ready_to_write_ = true;
 	}
 
 	/** @brief Do record?
@@ -253,6 +280,8 @@ public:
 	cv::Mat img_recv;
 
 private:
+
+	bool is_ready_to_write_;
 
 	/** @brief Set by the callback, it informs if it is necessary to record.
 	*/
@@ -294,6 +323,7 @@ void share_data_sync() {
 	// req requests from server
 	std::string cmd =
 		"image,rgb," + std::to_string(width) + "," + std::to_string(height) + ",3" +
+		"|yolo,objdet" +
 		"|instruction,cmd0,4096" +
 		"|instruction,req0,4096";
 
@@ -326,9 +356,9 @@ void share_data_sync() {
 	}
 	// create and start the listening process to a specific instruction
 	// key
-	//shared_data_server.start(std::vector<size_t>{key_cmd0},
-	//	co::shm::kThreadPriorityBackgroundBegin);
-	shared_data_server.start(co::shm::kThreadPriorityBackgroundBegin);
+	shared_data_server.start(std::vector<size_t>{key_cmd0},
+		co::shm::kThreadPriorityBackgroundBegin);
+	//shared_data_server.start(co::shm::kThreadPriorityBackgroundBegin);
 
 	// main
 	try {
@@ -348,39 +378,45 @@ void share_data_sync() {
 		callback_elaboration.key_req0 = key_req0;
 		callback_elaboration.img_recv = rgb;
 
-		//// image used to close the program
-		//cv::Mat m(10, 10, CV_8UC3, cv::Scalar(0, 255));
-		//bool do_continue = true;
-		//int num_frame = 0;
+		// image used to close the program
+		cv::Mat m(10, 10, CV_8UC3, cv::Scalar(0, 255));
+		bool do_continue = true;
+		int num_frame = 0;
 
-		std::cout << "input a key to quit" << std::endl;
-		int val = 0;
-		std::cin >> val;
+		//std::cout << "input a key to quit" << std::endl;
+		//int val = 0;
+		//std::cin >> val;
 
-		//while (do_continue) {
+		while (do_continue) {
 
-		//	cv::imshow("rgb", rgb);
-		//	cv::imshow("server", m);
-		//	char c = cv::waitKey(30);
-		//	//shared_data_server.push_data(key_instruction, 
-		//	//	words[num_frame % words.size()]);
-		//	//shared_data_server.notify();
-		//	switch (c) {
-		//	case 'q':
-		//	case 27:
-		//		do_continue = false;
-		//		break;
-		//	case 'r':
-		//		std::cout << "pushed r" << std::endl;
-		//		shared_data_server.push_data_byid(key_req0, "record|1");
-		//		break;
-		//	case 's':
-		//		std::cout << "pushed s" << std::endl;
-		//		shared_data_server.push_data_byid(key_req0, "record|0");
-		//		break;
-		//	}
-		//	++num_frame;
-		//}
+			//cv::imshow("rgb", rgb);
+			cv::imshow("server", m);
+			char c = cv::waitKey(30);
+
+			//if (callback_elaboration.is_ready_to_write()) {
+			//	shared_data_server.push_data_byid(key_req0, "Update|" + std::to_string(callback_elaboration.last_frame_process));
+			//	callback_elaboration.set_is_ready_to_write(false);
+			//}
+
+			//shared_data_server.push_data(key_instruction, 
+			//	words[num_frame % words.size()]);
+			//shared_data_server.notify();
+			switch (c) {
+			case 'q':
+			case 27:
+				do_continue = false;
+				break;
+			case 'r':
+				std::cout << "pushed r" << std::endl;
+				shared_data_server.push_data_byid(key_req0, "record|1");
+				break;
+			case 's':
+				std::cout << "pushed s" << std::endl;
+				shared_data_server.push_data_byid(key_req0, "record|0");
+				break;
+			}
+			++num_frame;
+		}
 	}
 	catch (boost::interprocess::interprocess_exception &ex) {
 		std::cout << ex.what() << std::endl;
@@ -398,8 +434,8 @@ void share_data_sync() {
 void main(int argc, char* argv[])
 {
 	std::cout << "shm_common_SharedDataDerivedSampleServer" << std::endl;
-	share_data_test();
-	//share_data_sync();
+	//share_data_test();
+	share_data_sync();
 
 	return;
 }

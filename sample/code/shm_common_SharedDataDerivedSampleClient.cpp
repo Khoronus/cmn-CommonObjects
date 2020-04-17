@@ -170,6 +170,13 @@ public:
 
 	CallbackElaborationSync() : do_record_(false) { num_frame = 0; }
 
+	void set_is_ready_to_write(bool is_ready_to_write) {
+		is_ready_to_write_ = is_ready_to_write;
+	}
+	bool is_ready_to_write() {
+		return is_ready_to_write_;
+	}
+
 	/** @brief Callback functions
 	*/
 	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
@@ -179,7 +186,9 @@ public:
 		std::cout << "client_side: smm object name:" << msg << std::endl;
 		msg = smm.get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
-		smm.set_string(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+		//smm.set_string(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+
+		is_ready_to_write_ = true;
 		//shared_data_client->push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
 		++num_frame;
 		//c_cv_->notify_all();
@@ -219,6 +228,8 @@ public:
 	int num_frame = 0;
 
 private:
+
+	bool is_ready_to_write_;
 
 	/** @brief Set by the callback, it informs if it is necessary to record.
 	*/
@@ -277,7 +288,7 @@ int test_client_sycn() {
 	// start the listening process
 	shared_data_client.start(std::vector<size_t>{key_req0},
 		co::shm::kThreadPriorityBackgroundBegin);
-	shared_data_client.start(co::shm::kThreadPriorityBackgroundBegin);
+	//shared_data_client.start(co::shm::kThreadPriorityBackgroundBegin);
 
 	try {
 
@@ -316,33 +327,59 @@ int test_client_sycn() {
 
 		//shared_data_client.push_data_byid(key_cmd0, "data_is_ready|-1");
 		std::cout << "input a key to quit" << std::endl;
-		int val = 0;
-		std::cin >> val;
+		//int val = 0;
+		//std::cin >> val;
+
+		callback_elaboration.set_is_ready_to_write(true);
 
 
-		//bool end_loop = false;
-		//int num_frame = 0;
-		//do {
-		//	//// Wait that some valid data is given
-		//	//std::unique_lock<std::mutex> lk(c_mutex_);
-		//	//while (!c_is_ready_)
-		//	//{
-		//	//	c_cv_.wait_for(lk, std::chrono::milliseconds(kSharedDataProcessTimeout));
-		//	//	if (!c_is_ready_) {
-		//	//		std::cout << "Spurious wake up!\n";
-		//	//		break;
-		//	//	}
-		//	//}
-		//	//// it stops the next time that the condition variable is detected
-		//	//c_is_ready_ = false;
-		//	//std::cout << "here: " << is_valid << std::endl;
+		bool end_loop = false;
+		int num_frame = 0;
+		do {
+			//// Wait that some valid data is given
+			//std::unique_lock<std::mutex> lk(c_mutex_);
+			//while (!c_is_ready_)
+			//{
+			//	c_cv_.wait_for(lk, std::chrono::milliseconds(kSharedDataProcessTimeout));
+			//	if (!c_is_ready_) {
+			//		std::cout << "Spurious wake up!\n";
+			//		break;
+			//	}
+			//}
+			//// it stops the next time that the condition variable is detected
+			//c_is_ready_ = false;
+			//std::cout << "here: " << is_valid << std::endl;
 
-		//	vc >> m;
-		//	cv::imshow("client", m);
-		//	if (cv::waitKey(10) == 27) end_loop = true;
-		//	shared_data_client.push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
-		//	++num_frame;
-		//} while (!end_loop);
+			cv::Mat tmp;
+			vc >> tmp;
+			cv::imshow("client", tmp);
+			if (cv::waitKey(10) == 27) end_loop = true;
+
+			if (callback_elaboration.is_ready_to_write()) {
+
+				// Read the result of the detection
+				std::vector<int> vint;
+				std::vector<double> vdouble;
+				shared_data_client.get_object_Veci("objdet", vint);
+				shared_data_client.get_object_Vecd("objdet", vdouble);
+				std::cout << "int>> ";
+				for (auto &it : vint) {
+					std::cout << it << " ";
+				}
+				std::cout << std::endl;
+				std::cout << "double>> ";
+				for (auto &it : vdouble) {
+					std::cout << it << " ";
+				}
+				std::cout << std::endl;
+
+
+				memcpy(m.data, tmp.data, m.cols * m.rows * m.channels());
+				callback_elaboration.set_is_ready_to_write(false);
+				++num_frame;
+			}
+			shared_data_client.push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+		} while (!end_loop);
 	}
 	catch (boost::interprocess::interprocess_exception &ex) {
 		std::cout << ex.what() << std::endl;
@@ -356,6 +393,6 @@ int test_client_sycn() {
 //-----------------------------------------------------------------------------
 int main()
 {
-	test_client();
-	//test_client_sycn();
+	//test_client();
+	test_client_sycn();
 }

@@ -478,7 +478,7 @@ public:
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
-			if (value.size() != shared_object_[id].int_vector_.size()) {
+			if (value.size() != shared_object_[id].double_vector_.size()) {
 				// Fill the new shared string
 				// Clear and fill the new vector data
 				shared_object_[id].double_vector_.clear();
@@ -502,6 +502,60 @@ public:
 		}
 	}
 
+	/** @brief It push a new vector data.
+
+		It push a new vector data. It modifies the size of the object.
+		@Important The internal vector is resized
+		@previous_name push_info
+	*/
+	void copyTo_Vecd(size_t id, std::vector<double> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Clear and fill the new vector data if the size is different
+			if (value.size() != shared_object_[id].int_vector_.size()) {
+				// Fill the new shared string
+				// Clear and fill the new vector data
+				value.clear();
+				for (auto it : shared_object_[id].double_vector_)
+				{
+					value.push_back(it);
+				}
+			} else {
+				for (size_t i = 0; i < value.size(); ++i) {
+					value[i] = shared_object_[id].double_vector_[i];
+				}
+			}
+		}
+	}
+
+	/** @brief It push a new vector data.
+
+		It push a new vector data. It modifies the size of the object.
+		@Important The internal vector is resized
+		@previous_name push_info
+	*/
+	void copyTo_Veci(size_t id, std::vector<int> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Clear and fill the new vector data if the size is different
+			if (value.size() != shared_object_[id].int_vector_.size()) {
+				// Fill the new shared string
+				// Clear and fill the new vector data
+				value.clear();
+				for (auto it : shared_object_[id].int_vector_)
+				{
+					value.push_back(it);
+				}
+			}
+			else {
+				for (size_t i = 0; i < value.size(); ++i) {
+					value[i] = shared_object_[id].int_vector_[i];
+				}
+			}
+		}
+	}
+
+
 
 	/** @brief Modify the current information (without change the size of the 
 	           object)
@@ -523,11 +577,26 @@ public:
 
 		@previous_name set_ptr
 	*/
-	void copyFrom(size_t id, void *ptr, size_t bytes) {
-		if (id >= 0 && id < num_items_) {
+	bool copyFrom(size_t id, void *ptr, size_t bytes) {
+		if (id >= 0 && id < num_items_ &&
+			bytes < shared_object_[id].ptr_size()) {
 			memcpy(shared_object_[id].ptr(), ptr, bytes);
+			return true;
+		}
+		return false;
+	}
+
+	/** @brief It sets the pointer data information
+
+		@previous_name set_ptr
+	*/
+	bool copyTo(size_t id, void *ptr, size_t bytes) {
+		if (id >= 0 && id < num_items_ &&
+			bytes < shared_object_[id].ptr_size()) {
+			memcpy(ptr, shared_object_[id].ptr(), bytes);
 		}
 	}
+
 
 	/** @brief Get string content
 

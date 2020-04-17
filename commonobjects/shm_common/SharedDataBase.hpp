@@ -240,9 +240,25 @@ public:
 		std::vector<double> &values) {
 		size_t key_id = get_key_id(name);
 		if (key_id != kInvalidKeyID) {
-			for (auto &it : smm_.shared_object(key_id)->double_vector_) {
-				values.push_back(it);
-			}
+			smm_.copyTo_Vecd(key_id, values);
+			//for (auto &it : smm_.shared_object(key_id)->double_vector_) {
+			//	values.push_back(it);
+			//}
+			return true;
+		}
+		return false;
+	}
+
+	/** @brief It push a source image in the shared memory
+
+		@previous_name get_object_values
+	*/
+	bool get_object_Veci(
+		const std::string &name,
+		std::vector<int> &values) {
+		size_t key_id = get_key_id(name);
+		if (key_id != kInvalidKeyID) {
+			smm_.copyTo_Veci(key_id, values);
 			return true;
 		}
 		return false;
