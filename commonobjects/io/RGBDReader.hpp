@@ -681,8 +681,6 @@ public:
 	}
 
 
-private:
-
 	/** @brief It reads a camera intrinsic parameter.
 
 		It reads a camera intrinsic parameter. The file is structured
@@ -714,38 +712,6 @@ private:
 		return false;
 	}
 
-	/** @brief It reads a binary file
-	*/
-	template<typename _Ty>
-	static std::vector<_Ty> readFile(const char* filename)
-	{
-		// open the file:
-		std::ifstream file(filename, std::ios::binary);
-		if (!file.is_open()) {
-			std::cout << "[-] : " << filename << std::endl;
-			return std::vector<_Ty>();
-		}
-
-		// Stop eating new lines in binary mode!!!
-		file.unsetf(std::ios::skipws);
-
-		// get its size:
-		std::streampos fileSize;
-
-		file.seekg(0, std::ios::end);
-		fileSize = file.tellg();
-		file.seekg(0, std::ios::beg);
-
-		// reserve capacity
-		std::vector<_Ty> vec;
-		vec.reserve(fileSize);
-
-		// read the data:
-		vec.insert(vec.begin(),
-			std::istream_iterator<_Ty>(file),
-			std::istream_iterator<_Ty>());
-		return vec;
-	}
 
 	static cv::Point3f get_xyz_from_uv(float u, float v, float d, float ppx, float ppy, float focal) {
 		float x = 0, y = 0;
@@ -853,6 +819,42 @@ private:
 			}
 		}
 	}
+
+private:
+
+	/** @brief It reads a binary file
+	*/
+	template<typename _Ty>
+	static std::vector<_Ty> readFile(const char* filename)
+	{
+		// open the file:
+		std::ifstream file(filename, std::ios::binary);
+		if (!file.is_open()) {
+			std::cout << "[-] : " << filename << std::endl;
+			return std::vector<_Ty>();
+		}
+
+		// Stop eating new lines in binary mode!!!
+		file.unsetf(std::ios::skipws);
+
+		// get its size:
+		std::streampos fileSize;
+
+		file.seekg(0, std::ios::end);
+		fileSize = file.tellg();
+		file.seekg(0, std::ios::beg);
+
+		// reserve capacity
+		std::vector<_Ty> vec;
+		vec.reserve(fileSize);
+
+		// read the data:
+		vec.insert(vec.begin(),
+			std::istream_iterator<_Ty>(file),
+			std::istream_iterator<_Ty>());
+		return vec;
+	}
+
 };
 
 } // namespace io
