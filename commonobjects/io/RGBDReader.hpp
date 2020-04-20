@@ -145,7 +145,7 @@ public:
 			std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
 			for (int y = 0; y < rgb.rows; ++y) {
 				for (int x = 0; x < rgb.cols; ++x) {
-					cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth, 
+					cv::Point3f p = get_XYZ_from_pts(cv::Point2f(x, y), depth, 
 						ppx, ppy, focal_input);
 					p *= 0.001;
 					cv::Scalar color(rgb.at<cv::Vec3b>(y, x)[2],
@@ -222,7 +222,7 @@ public:
 			//std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
 			for (int y = 0; y < rgb.rows; ++y) {
 				for (int x = 0; x < rgb.cols; ++x) {
-					cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth,
+					cv::Point3f p = get_XYZ_from_pt(cv::Point2f(x, y), depth,
 						ppx, ppy, focal_input);
 					p *= 0.001;
 					map3D.at<cv::Vec3f>(y, x) =
@@ -395,7 +395,7 @@ public:
 		//std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
 		for (int y = 0; y < rgb.rows; y += bin) {
 			for (int x = 0; x < rgb.cols; x += bin) {
-				cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth,
+				cv::Point3f p = get_XYZ_from_pt(cv::Point2f(x, y), depth,
 					ppx, ppy, focal_input);
 				p *= 0.001;
 				map3D.at<cv::Vec3f>(y, x) =
@@ -417,7 +417,7 @@ public:
 		// get the p3d with color
 		for (int y = 0; y < rgb.rows; y += bin) {
 			for (int x = 0; x < rgb.cols; x += bin) {
-				cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth,
+				cv::Point3f p = get_XYZ_from_pt(cv::Point2f(x, y), depth,
 					ppx, ppy, focal_input);
 				p *= 0.001;
 				cv::Scalar color(rgb.at<cv::Vec3b>(y, x)[2],
@@ -614,7 +614,7 @@ public:
 			// Get the 3D points
 			for (int y = 0; y < depth.rows; ++y) {
 				for (int x = 0; x < depth.cols; ++x) {
-					cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth,
+					cv::Point3f p = get_XYZ_from_pt(cv::Point2f(x, y), depth,
 						ppx, ppy, focal_input);
 					p *= 0.001;
 					uvxyz[std::make_pair(x, y)] = p;
@@ -671,7 +671,7 @@ public:
 		std::vector<std::pair<cv::Point3f, cv::Scalar>> p3dcolor;
 		for (int y = 0; y < rgb.rows; ++y) {
 			for (int x = 0; x < rgb.cols; ++x) {
-				cv::Point3f p = get_xyz_from_pts(cv::Point2f(x, y), depth,
+				cv::Point3f p = get_XYZ_from_pt(cv::Point2f(x, y), depth,
 					ppx, ppy, focal_input);
 				p *= 0.001;
 				uvxyz[std::make_pair(x, y)] = p;
@@ -713,49 +713,60 @@ public:
 	}
 
 
-	static cv::Point3f get_xyz_from_uv(float u, float v, float d, float ppx, float ppy, float focal) {
-		float x = 0, y = 0;
+	/** @brief Get the coorindate in the image of a projected 3D point
+
+		@previous_name get_xyz_from_uv
+	*/
+	static cv::Point3f get_XYZ_from_xy(float x, float y, float d, float ppx, float ppy, float focal) {
+		float X3D = 0, Y3D = 0;
 		if (focal != 0) {
-			x = (u - ppx) / focal * d;
-			y = (v - ppy) / focal * d;
+			X3D = (x - ppx) / focal * d;
+			Y3D = (y - ppy) / focal * d;
+		} else {
+			X3D = 0;
+			Y3D = 0;
 		}
-		else {
+		return cv::Point3f(X3D, Y3D, d);
+	}
+
+	/** @brief Get the position in 3D (camera coordinate) given the image position
+
+		@previous_name get_uv_from_xyz
+	*/
+	static cv::Point2f get_xy_from_XYZ(float X3D, float Y3D, float Z3D, float ppx, float ppy, float focal) {
+		float x = 0, y = 0;
+		if (Z3D != 0) {
+			x = focal * X3D / Z3D + ppx;
+			y = focal * Y3D / Z3D + ppy;
+		} else {
 			x = 0;
 			y = 0;
 		}
-		return cv::Point3f(x, y, d);
+		return cv::Point2f(x, y);
 	}
 
-	static cv::Point2f get_uv_from_xyz(float x, float y, float z, float ppx, float ppy, float focal) {
-		float u = 0, v = 0;
-		if (z != 0) {
-			u = focal * x / z + ppx;
-			v = focal * y / z + ppy;
-		}
-		else {
-			u = 0;
-			v = 0;
-		}
-		return cv::Point2f(u, v);
-	}
 
-	static cv::Point3f get_xyz_from_pts(cv::Point2f &pts_row, cv::Mat &depth, float ppx, float ppy, float focal) {
-		float u = pts_row.x;
-		float v = pts_row.y;
+	/** @brief 
+
+		@previous_name get_xyz_from_pts
+	*/
+	static cv::Point3f get_XYZ_from_pt(cv::Point2f &pt_row, cv::Mat &depth, float ppx, float ppy, float focal) {
+		float u = pt_row.x;
+		float v = pt_row.y;
 		int u0 = int(u);
 		int v0 = int(v);
 		int height = depth.rows;
 		int width = depth.cols;
 		// bilinear depth interpolation
 		if (u0 > 0 && u0 < width - 1 && v0 > 0 && v0 < height - 1) {
-			int up = pts_row.x - u0;
-			int vp = pts_row.y - v0;
+			int up = pt_row.x - u0;
+			int vp = pt_row.y - v0;
 			float d0 = depth.at<ushort>(v0, u0);
 			float d1 = depth.at<ushort>(v0, u0 + 1);
 			float d2 = depth.at<ushort>(v0 + 1, u0);
 			float d3 = depth.at<ushort>(v0 + 1, u0 + 1);
 			float d = (1 - vp) * (d1 * up + d0 * (1 - up)) + vp * (d3 * up + d2 * (1 - up));
-			return get_xyz_from_uv(u, v, d, ppx, ppy, focal);
+			return get_XYZ_from_xy(u, v, d, ppx, ppy, focal);
 		}
 		else {
 			return cv::Point3f(0, 0, 0);
