@@ -750,7 +750,8 @@ public:
 
 		@previous_name get_xyz_from_pts
 	*/
-	static cv::Point3f get_XYZ_from_pt(cv::Point2f &pt_row, cv::Mat &depth, float ppx, float ppy, float focal) {
+	static cv::Point3f get_XYZ_from_pt(const cv::Point2f &pt_row, 
+		const cv::Mat &depth, float ppx, float ppy, float focal) {
 		float u = pt_row.x;
 		float v = pt_row.y;
 		int u0 = int(u);
