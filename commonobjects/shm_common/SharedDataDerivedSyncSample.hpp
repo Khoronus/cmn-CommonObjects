@@ -1,5 +1,5 @@
 /**
-* @file SharedDataDerivedSample.hpp
+* @file SharedDataDerivedSyncSample.hpp
 * @brief Class to allocate the memory and structure for the shared memory.
 *
 * @section LICENSE
@@ -22,8 +22,8 @@
 */
 
 
-#ifndef COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSAMPLE_HPP__
-#define COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSAMPLE_HPP__
+#ifndef COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSYNCSAMPLE_HPP__
+#define COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSYNCSAMPLE_HPP__
 
 #include "SharedDataBase.hpp"
 
@@ -34,27 +34,29 @@ namespace co
 namespace shm
 {
 
-/** @brief Amount of ms to timeout a condition variable
-*/
-const int kSharedDataProcessTimeout = 1000;
+///** @brief Amount of ms to timeout a condition variable
+//*/
+//const int kSharedDataProcessTimeout = 1000;
+//
+//// Size of each point in bytes
+//typedef int SizeOfEachPointBytes;
+//// Total number of points for an object
+//typedef int NumberOfPoints;
+//
+///** @brief Function for callback
+//*/
+////typedef std::function<void(SharedMemoryManager &smm)> registration_callback_function;
+//
+///** @brief Structure with an observed frame data
+//*/
+//struct ObservedObject
+//{
+//	std::string serial;
+//	std::vector<float> points_data;
+//	int num_points;
+//};
 
-// Size of each point in bytes
-typedef int SizeOfEachPointBytes;
-// Total number of points for an object
-typedef int NumberOfPoints;
 
-/** @brief Function for callback
-*/
-//typedef std::function<void(SharedMemoryManager &smm)> registration_callback_function;
-
-/** @brief Structure with an observed frame data
-*/
-struct ObservedObject
-{
-	std::string serial;
-	std::vector<float> points_data;
-	int num_points;
-};
 
 /** @brief Class to manage a shared data
 
@@ -67,13 +69,13 @@ in the int_vector as follow
 The points are defined as follow
 xyz (float) rgb (unsigned char)
 */
-class SharedDataDerivedSample : public SharedDataBase
+class SharedDataDerivedSyncSample : public SharedDataBase
 {
 public:
 
-	SharedDataDerivedSample() {}
+	SharedDataDerivedSyncSample() {}
 
-	~SharedDataDerivedSample() {
+	~SharedDataDerivedSyncSample() {
 		stop();
 	}
 
@@ -538,81 +540,6 @@ public:
 	}
 
 
-	///** @brief It push new data
-	//*/
-	//void push_data(int id_obj, void *data, size_t size, int num_points) {
-	//	std::unique_lock<std::mutex> lk(c_mutex_);
-	//	// copy the data (if any)
-	//	if (data != nullptr) {
-	//		size_t max_size = 0;
-	//		auto ptr = smm_.get_ptr(id_obj, max_size);
-	//		if (ptr != nullptr && size < max_size) {
-	//			memcpy(ptr, data, size);
-	//			auto obj = smm_.shared_object(id_obj);
-	//			if (obj != nullptr) {
-	//				obj->int_vector_[1] = num_points;
-	//			}
-
-	//		}
-	//	}
-	//	c_is_ready_ = true;
-	//	c_cv_.notify_one();
-	//}
-
-	///** brief It push new data
-	//*/
-	//void push_data(std::map<int, ObservedObject> &data) {
-	//	//std::unique_lock<std::mutex> lk(c_mutex_);
-
-	//	std::clock_t c_start = std::clock();
-	//	// your_algorithm
-	//	// transfer the information
-	//	int num_points = 0;
-	//	for (auto &it : data) {
-	//		int id_obj = it.first; // object with the PCL
-	//		size_t max_size = 0;
-	//		auto ptr = smm_.get_ptr(id_obj, max_size);
-	//		if (ptr != nullptr && 
-	//			sizeof(float) * it.second.points_data.size() < max_size) {
-	//			
-	//			memcpy(ptr,&it.second.points_data[0],
-	//				sizeof(float) * it.second.points_data.size());
-	//			auto obj = smm_.shared_object(id_obj);
-	//			if (obj != nullptr) {
-	//				obj->int_vector_[1] = it.second.num_points;
-	//				// sum points
-	//				num_points += it.second.num_points;
-	//			}
-	//		}
-	//	}
-	//	std::clock_t c_end = std::clock();
-	//	long double time_elapsed_ms = 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC;
-	//	//std::cout << "CPU time used: " << time_elapsed_ms << " ms #" << num_points << "\n";
-
-	//	//// notify
-	//	//c_is_ready_ = true;
-	//	//c_cv_.notify_one();
-	//}
-
-	///** @brief It push a source image in the shared memory
-	//*/
-	//void push_image(int id_obj, 
-	//	unsigned char *data, size_t data_size,
-	//	int current_time, int num_frame) {
-
-	//	size_t max_size = 0;
-	//	auto ptr = smm_.get_ptr(id_obj, max_size);
-	//	if (ptr != nullptr && data_size < max_size) {
-
-	//		memcpy(ptr, data, data_size);
-	//		auto obj = smm_.shared_object(id_obj);
-	//		if (obj != nullptr) {
-	//			obj->double_vector_[3] = current_time;
-	//			obj->double_vector_[4] = num_frame;
-	//		}
-	//	}
-	//}
-
 	/** @brief It gets the size of an associated image
 	*/
 	bool get_image_size(const std::string &object_name, 
@@ -628,11 +555,76 @@ public:
 	}
 
 
+	/** @brief It initializes the mutex and condition variable
+	*/
+	void initialize_wait(const std::string &who_mtx, const std::string &who_cnd, int timeout_ms) {
+
+		// It creates the mutex and condition variable for whole process
+		if (sync_mtx_.find(who_mtx) == sync_mtx_.end()) {
+			sync_mtx_[who_mtx] = smm_.find_or_create_mutex(who_mtx);
+			sync_timeout_ms_[who_mtx] = timeout_ms;
+			if (timeout_ms > 0) {
+				sync_lock_[who_mtx] = boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>{ *(sync_mtx_[who_mtx]) };
+			}
+		}
+
+		if (sync_cnd_.find(who_cnd) == sync_cnd_.end()) {
+			sync_cnd_[who_cnd] = smm_.find_or_create_condition(who_cnd);
+		}
+	}
+
+	/** @return It return true in case of no timeout (notify received). False
+	            otherwise.
+	*/
+	bool wait_timeout(const std::string &who_mtx, const std::string &who_cnd, int timeout_ms) {
+		// wait?
+		boost::system_time timeout = boost::get_system_time() + boost::posix_time::milliseconds(timeout_ms);
+		return sync_cnd_[who_cnd]->timed_wait(sync_lock_[who_mtx], timeout);
+	}
+
+	bool wait_no_timeout(const std::string &who_mtx, const std::string &who_cnd) {
+		boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(*sync_mtx_[who_mtx]);
+		sync_cnd_[who_cnd]->wait(lock);
+
+		return true;
+	}
+
+
+	bool wait(const std::string &who_mtx, const std::string &who_cnd) {
+
+		if (sync_lock_.find(who_mtx) != sync_lock_.end() &&
+			sync_timeout_ms_[who_mtx] > 0) {
+			return wait_timeout(who_mtx, who_cnd, sync_timeout_ms_[who_mtx]);
+		} else {
+			return wait_no_timeout(who_mtx, who_cnd);
+		}
+
+		return false;
+
+	}
+
+	void notify_all(const std::string &who) {
+		if (sync_cnd_.find(who) != sync_cnd_.end()) {
+			sync_cnd_[who]->notify_all();
+		}
+	}
+
+	void notify_one(const std::string &who) {
+		if (sync_cnd_.find(who) != sync_cnd_.end()) {
+			sync_cnd_[who]->notify_one();
+		}
+	}
+
+
 private:
 
+	std::map<std::string, boost::interprocess::interprocess_mutex*> sync_mtx_;
+	std::map<std::string, boost::interprocess::interprocess_condition*> sync_cnd_;
+	std::map<std::string, int> sync_timeout_ms_;
+	std::map<std::string, boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex>> sync_lock_;
 };
 
 } // namespace shm
 } // namespace co
 
-#endif // COMMONOBJECTS_SHMCOMMON_SHAREDDATASTRUCTURE_HPP__
+#endif // COMMONOBJECTS_SHMCOMMON_SHAREDDATADERIVEDSYNCSAMPLE_HPP__

@@ -35,6 +35,7 @@
 //#include <Windows.h>
 
 #include "commonobjects/shm_common/SharedDataDerivedSample.hpp"
+#include "commonobjects/shm_common/SharedDataDerivedSyncSample.hpp"
 #include "commonobjects/string_common/StringOp.hpp"
 
 namespace
@@ -427,6 +428,237 @@ void share_data_sync() {
 
 
 
+
+/** @brief Class to elaborate the received callbacks
+*/
+class CallbackElaborationSyncGlob
+{
+public:
+
+	CallbackElaborationSyncGlob() : do_record_(false) {
+		last_frame_process = -1;
+	}
+
+	void set_is_ready_to_write(bool is_ready_to_write) {
+		is_ready_to_write_ = is_ready_to_write;
+	}
+	bool is_ready_to_write() {
+		return is_ready_to_write_;
+	}
+
+	int last_frame_process;
+
+	/** @brief Callback functions
+
+		It should be thread safe since is called back from a mutex protected function
+	*/
+	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
+		std::cout << "server_side: received:" << object_id << std::endl;
+		std::string msg;
+		msg = smm.object_name(object_id);
+		std::cout << "server_side: smm object name:" << msg << std::endl;
+		msg = smm.get_string(object_id);
+		std::cout << "msg: " << msg << std::endl;
+		auto words = co::text::StringOp::split(msg, '|');
+		int num_frame_src = std::stoi(words[1]);
+		if (num_frame_src != last_frame_process) {
+			std::cout << "PROCESS" << std::endl;
+			last_frame_process = num_frame_src;
+			//shared_data_server->push_data_byid(key_req0, "echo from server:" + msg);
+			cv::imshow("img_recv", img_recv);
+			cv::waitKey(1);
+			//std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+			// modify yolo
+			size_t key_yolo = shared_data_server->get_key_id("objdet");
+			std::vector<int> vint = { 1, 2, 1 };
+			std::vector<double> vdouble = { 0.4, 0.2, 0.3, 0.2, 0.1, 0.5, 0.4, 0.6, 0.1, 0.2, 0.7, 0.1, 0.8, 0.3, 0.15 };
+			smm.copyFrom_Veci(key_yolo, vint);
+			smm.copyFrom_Vecd(key_yolo, vdouble);
+
+			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
+		}
+		is_ready_to_write_ = true;
+	}
+
+	/** @brief Do record?
+	*/
+	bool do_record() {
+		return do_record_;
+	}
+
+	std::string path_where_to_save() {
+		return path_where_to_save_;
+	}
+
+	co::shm::SharedDataDerivedSyncSample *shared_data_server;
+	size_t key_req0;
+	cv::Mat img_recv;
+
+private:
+
+	bool is_ready_to_write_;
+
+	/** @brief Set by the callback, it informs if it is necessary to record.
+	*/
+	bool do_record_;
+
+	std::string path_where_to_save_;
+
+	/** @brief It parses the command received
+	*/
+	void parse(const std::string &msg) {
+		std::vector<std::string> words = co::text::StringOp::split(msg, '|');
+		if (words.size() > 0) {
+			if (words[0] == "record" && words.size() > 1) {
+				do_record_ = std::stoi(words[1]);
+			}
+			else if (words[0] == "path" && words.size() > 1) {
+				path_where_to_save_ = words[1];
+			}
+		}
+	}
+};
+
+
+void share_data_sync_glob() {
+
+	// shared data
+	co::shm::SharedDataDerivedSyncSample shared_data_server;
+
+	// Set the shared data
+	std::string name_shm = "MySharedMemory";
+	std::string name_shared_object = "SharedObject";
+	int width = 640, height = 480;
+	// which objects to allocate
+	// change to type, params(name, etc...)
+	// add to the shared object type and name
+	// cmd instruction from clients
+	// req requests from server
+	std::string cmd =
+		"image,rgb," + std::to_string(width) + "," + std::to_string(height) + ",3" +
+		"|yolo,objdet" +
+		"|instruction,cmd0,4096" +
+		"|instruction,req0,4096";
+
+	std::cout << "[shm::cmd]>>" << cmd << std::endl;
+	// parse the command and allocate the memory
+	int err = shared_data_server.parse(name_shm, name_shared_object, cmd);
+	if (err != co::shm::kSharedNoError) {
+		std::cout << "shared_data error: " << err << std::endl;
+	}
+	CallbackElaborationSyncGlob callback_elaboration;
+	// bind the function
+	shared_data_server.registerCallback(std::bind(&CallbackElaborationSyncGlob::my_func,
+		std::ref(callback_elaboration), std::placeholders::_1, std::placeholders::_2));
+
+	// Object ID
+	size_t key_image = shared_data_server.get_key_id("rgb");
+	if (key_image == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the image" << std::endl;
+		return;
+	}
+	size_t key_req0 = shared_data_server.get_key_id("req0");
+	if (key_req0 == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the key_req0" << std::endl;
+		return;
+	}
+	size_t key_cmd0 = shared_data_server.get_key_id("cmd0");
+	if (key_cmd0 == co::shm::kInvalidKeyID) {
+		std::cout << "[e] Shared memory has memory for the key_cmd0" << std::endl;
+		return;
+	}
+	// create and start the listening process to a specific instruction
+	// key
+	shared_data_server.start(std::vector<size_t>{key_cmd0},
+		co::shm::kThreadPriorityBackgroundBegin);
+	//shared_data_server.start(co::shm::kThreadPriorityBackgroundBegin);
+
+	// Allocates all the global mutex and condition variable
+	shared_data_server.initialize_wait("glob_mtx", "glob_cnd_srv", 100);
+	shared_data_server.initialize_wait("glob_mtx", "glob_cnd_cln", 100);
+
+	// main
+	try {
+		// Get the image information
+		int cols = 0, rows = 0, channels = 0;
+		shared_data_server.get_image_size("rgb", cols, rows, channels);
+		std::cout << "Expected image [" << cols << "," << rows << "," <<
+			channels << "]" << std::endl;
+
+		// It allocates the memory for the shared images
+		size_t size = 0;
+		cv::Mat rgb(rows, cols, CV_8UC3,
+			shared_data_server.get_object_ptr(key_image, size));
+
+		// set the callback and callforward params
+		callback_elaboration.shared_data_server = &shared_data_server;
+		callback_elaboration.key_req0 = key_req0;
+		callback_elaboration.img_recv = rgb;
+
+		// image used to close the program
+		cv::Mat m(10, 10, CV_8UC3, cv::Scalar(0, 255));
+		bool do_continue = true;
+		int num_frame = 0;
+
+		//std::cout << "input a key to quit" << std::endl;
+		//int val = 0;
+		//std::cin >> val;
+
+		// notify
+		shared_data_server.notify_all("glob_cnd_cln");
+
+		while (do_continue) {
+
+			//cv::imshow("rgb", rgb);
+			cv::imshow("server", m);
+			char c = cv::waitKey(1);
+
+			// wait for the connection
+			if (!shared_data_server.wait("glob_mtx", "glob_cnd_srv")) {
+				std::cout << "Timeout" << std::endl;
+			} else {
+				//std::cout << "num_frame: " << num_frame << std::endl;
+			}
+
+			//if (callback_elaboration.is_ready_to_write()) {
+			//	shared_data_server.push_data_byid(key_req0, "Update|" + std::to_string(callback_elaboration.last_frame_process));
+			//	callback_elaboration.set_is_ready_to_write(false);
+			//}
+
+			//shared_data_server.push_data(key_instruction, 
+			//	words[num_frame % words.size()]);
+			//shared_data_server.notify();
+			switch (c) {
+			case 'q':
+			case 27:
+				do_continue = false;
+				break;
+			case 'r':
+				std::cout << "pushed r" << std::endl;
+				shared_data_server.push_data_byid(key_req0, "record|1");
+				break;
+			case 's':
+				std::cout << "pushed s" << std::endl;
+				shared_data_server.push_data_byid(key_req0, "record|0");
+				break;
+			}
+			++num_frame;
+
+			// notify
+			shared_data_server.notify_all("glob_cnd_cln");
+		}
+	}
+	catch (boost::interprocess::interprocess_exception &ex) {
+		std::cout << ex.what() << std::endl;
+		return;
+	}
+	shared_data_server.stop();
+}
+
+
+
+
 } // namespace anonymous
 
 
@@ -435,7 +667,10 @@ void main(int argc, char* argv[])
 {
 	std::cout << "shm_common_SharedDataDerivedSampleServer" << std::endl;
 	//share_data_test();
-	share_data_sync();
+	//share_data_sync();
+
+
+	share_data_sync_glob();
 
 	return;
 }

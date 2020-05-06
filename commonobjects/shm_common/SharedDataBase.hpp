@@ -90,47 +90,53 @@ public:
 		const std::string &msg,
 		bool do_allocate = true) = 0;
 
-	/** @brief It detects the memory which will contain the structured data.
+	///** @brief It detects the memory which will contain the structured data.
 
-	It detects the memory which will contain the structured data.
+	//It detects the memory which will contain the structured data.
 
-	@param[in] name_shm Shared memory name
-	*/
-	bool detect(
+	//@param[in] name_shm Shared memory name
+	//*/
+	//bool detect(
+	//	const std::string &name_shm,
+	//	const std::string &name_object_shm) {
+
+	//	// copy the name of the shared memory
+	//	name_shm_ = name_shm;
+
+	//	if (!smm_.detect(name_shm_, name_object_shm)) {
+	//		std::cout << "Unable to detect: " << name_shm << std::endl;
+	//		return false;
+	//	}
+
+	//	// It creates the mutex and condition variable for whole process
+	//	global_mtx_ =
+	//		smm_.find_or_create_mutex("global_mtx");
+	//	global_cnd_ =
+	//		smm_.find_or_create_condition("global_cnd");
+
+	//	// It creates the mutex and condition variable for the existing
+	//	// objects
+	//	for (size_t i = 0; i < smm_.num_items(); ++i) {
+	//		std::string name = "obj_mtx" + std::to_string(i);
+	//		v_obj_mtx_.push_back(
+	//			smm_.find_or_create_mutex(name.c_str())
+	//		);
+	//	}
+	//	for (size_t i = 0; i < smm_.num_items(); ++i) {
+	//		std::string name = "obj_cnd" + std::to_string(i);
+	//		v_obj_cnd_.push_back(
+	//			smm_.find_or_create_condition(name.c_str())
+	//		);
+	//	}
+
+	//	return true;
+	//}
+
+	virtual bool detect(
 		const std::string &name_shm,
-		const std::string &name_object_shm) {
+		const std::string &name_object_shm) = 0;
 
-		// copy the name of the shared memory
-		name_shm_ = name_shm;
 
-		if (!smm_.detect(name_shm_, name_object_shm)) {
-			std::cout << "Unable to detect: " << name_shm << std::endl;
-			return false;
-		}
-
-		// It creates the mutex and condition variable for whole process
-		mtx_ =
-			smm_.find_or_create_mutex("mtx");
-		cnd_ =
-			smm_.find_or_create_condition("cnd");
-
-		// It creates the mutex and condition variable for the existing
-		// objects
-		for (size_t i = 0; i < smm_.num_items(); ++i) {
-			std::string name = "mtx" + std::to_string(i);
-			vmtx_.push_back(
-				smm_.find_or_create_mutex(name.c_str())
-			);
-		}
-		for (size_t i = 0; i < smm_.num_items(); ++i) {
-			std::string name = "cnd" + std::to_string(i);
-			vcnd_.push_back(
-				smm_.find_or_create_condition(name.c_str())
-			);
-		}
-
-		return true;
-	}
 
 	/** @brief It starts the worker
 	*/
@@ -176,7 +182,7 @@ public:
 	/** @brief It register the callback function
 	*/
 	void registerCallback(registration_callback_function_shared &&callback) {
-		m_callback_ = callback;
+		f_callback_ = callback;
 	}
 
 	/** @brief It returns the index of an associated object key
@@ -210,8 +216,8 @@ public:
 
 	/** @brief It notifies that the data has been pushed (process)
 	*/
-	void notify() {
-		cnd_->notify_all();
+	void global_notify() {
+		global_cnd_->notify_all();
 	//	std::unique_lock<std::mutex> lk(c_mutex_);
 	//	c_is_ready_ = true;
 	//	c_cv_.notify_one();
@@ -220,14 +226,14 @@ public:
 	/** @brief Notify for the objects allocated
 	*/
 	void notify_objects() {
-		for (auto &it : vcnd_) it->notify_all();
+		for (auto &it : v_obj_cnd_) it->notify_all();
 	}
 
 	/** @brief Notify for a single object allocated
 	*/
 	void notify_object(size_t id_obj) {
-		if (id_obj >= 0 && id_obj < vcnd_.size()) {
-			vcnd_[id_obj]->notify_all();
+		if (id_obj >= 0 && id_obj < v_obj_cnd_.size()) {
+			v_obj_cnd_[id_obj]->notify_all();
 		}
 	}
 
@@ -294,7 +300,7 @@ protected:
 
 	/** @brief Container with the callback functions
 	*/
-	registration_callback_function_shared m_callback_;
+	registration_callback_function_shared f_callback_;
 
 	///** @brief It guarantee that the passed data is valid
 	//*/
@@ -305,8 +311,8 @@ protected:
 	///** @brief To avoid spurious wakeup
 	//*/
 	//bool c_is_ready_;
-	boost::interprocess::interprocess_mutex *mtx_;
-	boost::interprocess::interprocess_condition *cnd_;
+	boost::interprocess::interprocess_mutex* global_mtx_;
+	boost::interprocess::interprocess_condition* global_cnd_;
 
 
 	/** @brief Container with the index of the object
@@ -317,8 +323,8 @@ protected:
 
 	/** @brief Multiple sources mtx and condition variable
 	*/
-	std::vector<boost::interprocess::interprocess_mutex*> vmtx_;
-	std::vector<boost::interprocess::interprocess_condition*> vcnd_;
+	std::vector<boost::interprocess::interprocess_mutex*> v_obj_mtx_;
+	std::vector<boost::interprocess::interprocess_condition*> v_obj_cnd_;
 };
 
 } // namespace shm
