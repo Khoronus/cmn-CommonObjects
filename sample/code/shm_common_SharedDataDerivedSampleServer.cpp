@@ -52,7 +52,7 @@ const std::string version_ = "0.1.0.0";
 */
 void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
 	std::cout << "server_side: received" << std::endl;
-	std::cout << "msg: " << smm.get_string("cmd1") << std::endl;
+	std::cout << "msg: " << smm.object_get_string("cmd1") << std::endl;
 
 	//std::cout << "Received[" << id << "]: " << size << " bytes" << std::endl;
 	//cv::Mat m(480, 640, CV_8UC3, data);
@@ -148,9 +148,9 @@ void share_data_test() {
 		// It allocates the memory for the shared images
 		size_t size = 0;
 		cv::Mat rgb(rows, cols, CV_8UC3,
-			shared_data_server.get_object_ptr(key_image, size));
+			shared_data_server.object_get_ptr(key_image, size));
 		cv::Mat skel(rows, cols, CV_8UC3,
-			shared_data_server.get_object_ptr(key_image2, size));
+			shared_data_server.object_get_ptr(key_image2, size));
 
 		// image used to close the program
 		cv::Mat m(10, 10, CV_8UC3, cv::Scalar(0, 255));
@@ -242,7 +242,7 @@ public:
 		std::string msg;
 		msg = smm.object_name(object_id);
 		std::cout << "server_side: smm object name:" << msg << std::endl;
-		msg = smm.get_string(object_id);
+		msg = smm.object_get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
 		auto words = co::text::StringOp::split(msg, '|');
 		int num_frame_src = std::stoi(words[1]);
@@ -258,8 +258,8 @@ public:
 			size_t key_yolo = shared_data_server->get_key_id("objdet");
 			std::vector<int> vint = { 1, 2, 1 };
 			std::vector<double> vdouble = { 0.4, 0.2, 0.3, 0.2, 0.1, 0.5, 0.4, 0.6, 0.1, 0.2, 0.7, 0.1, 0.8, 0.3, 0.15 };
-			smm.copyFrom_Veci(key_yolo, vint);
-			smm.copyFrom_Vecd(key_yolo, vdouble);
+			smm.object_Veci_copyFrom(key_yolo, vint);
+			smm.object_Vecd_copyFrom(key_yolo, vdouble);
 
 			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
 		}
@@ -372,7 +372,7 @@ void share_data_sync() {
 		// It allocates the memory for the shared images
 		size_t size = 0;
 		cv::Mat rgb(rows, cols, CV_8UC3,
-			shared_data_server.get_object_ptr(key_image, size));
+			shared_data_server.object_get_ptr(key_image, size));
 
 		// set the callback and callforward params
 		callback_elaboration.shared_data_server = &shared_data_server;
@@ -457,7 +457,7 @@ public:
 		std::string msg;
 		msg = smm.object_name(object_id);
 		std::cout << "server_side: smm object name:" << msg << std::endl;
-		msg = smm.get_string(object_id);
+		msg = smm.object_get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
 		auto words = co::text::StringOp::split(msg, '|');
 		int num_frame_src = std::stoi(words[1]);
@@ -473,8 +473,8 @@ public:
 			size_t key_yolo = shared_data_server->get_key_id("objdet");
 			std::vector<int> vint = { 1, 2, 1 };
 			std::vector<double> vdouble = { 0.4, 0.2, 0.3, 0.2, 0.1, 0.5, 0.4, 0.6, 0.1, 0.2, 0.7, 0.1, 0.8, 0.3, 0.15 };
-			smm.copyFrom_Veci(key_yolo, vint);
-			smm.copyFrom_Vecd(key_yolo, vdouble);
+			smm.object_Veci_copyFrom(key_yolo, vint);
+			smm.object_Vecd_copyFrom(key_yolo, vdouble);
 
 			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
 		}
@@ -589,7 +589,7 @@ void share_data_sync_glob() {
 		// It allocates the memory for the shared images
 		size_t size = 0;
 		cv::Mat rgb(rows, cols, CV_8UC3,
-			shared_data_server.get_object_ptr(key_image, size));
+			shared_data_server.object_get_ptr(key_image, size));
 
 		// set the callback and callforward params
 		callback_elaboration.shared_data_server = &shared_data_server;

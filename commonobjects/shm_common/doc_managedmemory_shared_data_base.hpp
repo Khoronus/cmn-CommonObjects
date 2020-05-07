@@ -301,7 +301,7 @@ public:
 
 		@previous push_info
 	*/
-	void copyFrom(size_t id, const std::string &msg, std::vector<int> &value) {
+	void object_copyFrom(size_t id, const std::string &msg, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -318,7 +318,7 @@ public:
 
 		@previous push_info
 	*/
-	void copyFrom_Veci(size_t id, std::vector<int> &value) {
+	void object_Veci_copyFrom(size_t id, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data
@@ -335,7 +335,7 @@ public:
 
 		@previous modify_info
 	*/
-	void modify_Veci(size_t id, std::vector<int> &value) {
+	void object_Veci_modify(size_t id, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			if (shared_object_[id].int_vector_.size() == value.size()) {
@@ -397,7 +397,7 @@ public:
 
 		@previous set
 	*/
-	void set_string(size_t id, const std::string &msg) {
+	void object_set_string(size_t id, const std::string &msg) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -409,7 +409,7 @@ public:
 
 		@previous set
 	*/
-	void copyFrom_Vecd(size_t id, const std::vector<double> &value) {
+	void object_Vecd_copyFrom(size_t id, const std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -431,7 +431,7 @@ public:
 
 		@previous set
 	*/
-	void copyFrom_Veci(size_t id, const std::vector<int> &value) {
+	void object_Veci_copyFrom(size_t id, const std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -454,7 +454,7 @@ public:
 
 		@previous_name push_info
 	*/
-	void copyFrom(size_t id, const std::string &msg, std::vector<double> &value) {
+	void object_copyFrom(size_t id, const std::string &msg, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
@@ -474,7 +474,7 @@ public:
 		@Important The internal vector is resized
 		@previous_name push_info
 	*/
-	void copyFrom_Vecd(size_t id, std::vector<double> &value) {
+	void object_Vecd_copyFrom(size_t id, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -508,7 +508,7 @@ public:
 		@Important The internal vector is resized
 		@previous_name push_info
 	*/
-	void copyTo_Vecd(size_t id, std::vector<double> &value) {
+	void object_Vecd_copyTo(size_t id, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -534,7 +534,7 @@ public:
 		@Important The internal vector is resized
 		@previous_name push_info
 	*/
-	void copyTo_Veci(size_t id, std::vector<int> &value) {
+	void object_Veci_copyTo(size_t id, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Clear and fill the new vector data if the size is different
@@ -562,7 +562,7 @@ public:
 
 		@previous_name modify_info
 	*/
-	void modify_Vecd(size_t id, std::vector<double> &value) {
+	void object_modify_Vecd(size_t id, std::vector<double> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			if (shared_object_[id].double_vector_.size() == value.size()) {
@@ -577,7 +577,7 @@ public:
 
 		@previous_name set_ptr
 	*/
-	bool copyFrom(size_t id, void *ptr, size_t bytes) {
+	bool object_ptr_copyFrom(size_t id, void *ptr, size_t bytes) {
 		if (id >= 0 && id < num_items_ &&
 			bytes < shared_object_[id].ptr_size()) {
 			memcpy(shared_object_[id].ptr(), ptr, bytes);
@@ -590,7 +590,7 @@ public:
 
 		@previous_name set_ptr
 	*/
-	bool copyTo(size_t id, void *ptr, size_t bytes) {
+	bool object_ptr_copyTo(size_t id, void *ptr, size_t bytes) {
 		if (id >= 0 && id < num_items_ &&
 			bytes < shared_object_[id].ptr_size()) {
 			memcpy(ptr, shared_object_[id].ptr(), bytes);
@@ -602,7 +602,7 @@ public:
 
 		@previous get
 	*/
-	std::string get_string(size_t id) {
+	std::string object_get_string(size_t id) {
 		if (id >= 0 && id < num_items_)
 		{
 			return std::string(shared_object_[id].char_string_.begin(),
@@ -614,7 +614,7 @@ public:
 
 		@previous get
 	*/
-	std::string get_string(const std::string &key) {
+	std::string object_get_string(const std::string &key) {
 		int id = key_id_[key];
 		if (id >= 0 && id < num_items_)
 		{
@@ -630,7 +630,7 @@ public:
 		@param[out] size Size of the valid memory data insert
 		@return Return a valid pointer if the object exists. nullptr otherwise.
 	*/
-	void* get_ptr(size_t id, size_t &size) {
+	void* object_get_ptr(size_t id, size_t &size) {
 		if (id >= 0 && id < num_items_) {
 			size = shared_object_[id].ptr_size();
 			return shared_object_[id].ptr();

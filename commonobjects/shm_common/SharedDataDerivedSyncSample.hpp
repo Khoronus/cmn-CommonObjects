@@ -138,7 +138,7 @@ public:
 						// Set the key id
 						key_id.insert(std::make_pair(type, object_id));
 						// set the maximum number of points and other information
-						smm_.copyFrom_Veci(object_id, std::vector<int>({ num_points, 0 }));
+						smm_.object_Veci_copyFrom(object_id, std::vector<int>({ num_points, 0 }));
 						// set object type
 						smm_.set_object_type(object_id, type);
 						// set object name
@@ -159,7 +159,7 @@ public:
 						// Set the key id
 						key_id.insert(std::make_pair(type, object_id));
 						// set the maximum number of points and other information
-						smm_.copyFrom_Veci(object_id, std::vector<int>({
+						smm_.object_Veci_copyFrom(object_id, std::vector<int>({
 							num_skeletons * num_points_skeleton, 0,
 							num_points_skeleton }));
 						// set object type
@@ -190,8 +190,8 @@ public:
 						value.push_back(0); // frame_id
 						ready_status.clear();
 						ready_status.push_back(1);
-						smm_.copyFrom(object_id, "image_info", value);
-						smm_.copyFrom(object_id, "ready_status", ready_status);
+						smm_.object_copyFrom(object_id, "image_info", value);
+						smm_.object_copyFrom(object_id, "ready_status", ready_status);
 						// set object type
 						smm_.set_object_type(object_id, type);
 						// set object name
@@ -481,7 +481,7 @@ public:
 		if (id_obj != kInvalidKeyID &&
 			id_obj >= 0 && id_obj < smm_.num_items()) {
 			// update
-			smm_.set_string(id_obj, msg);
+			smm_.object_set_string(id_obj, msg);
 			// notify
 			v_obj_cnd_[id_obj]->notify_all();
 			//std::unique_lock<std::mutex> lk(c_mutex_);
@@ -497,7 +497,7 @@ public:
 	void push_data_byid(int id_obj, const std::string &msg) {
 		if (id_obj >= 0 && id_obj < smm_.num_items()) {
 			// update
-			smm_.set_string(id_obj, msg);
+			smm_.object_set_string(id_obj, msg);
 			// notify
 			v_obj_cnd_[id_obj]->notify_all();
 			//std::unique_lock<std::mutex> lk(c_mutex_);
@@ -515,7 +515,7 @@ public:
 		for (auto &it : data) {
 			int id_obj = it.first; // object with the PCL
 			size_t max_size = 0;
-			auto ptr = smm_.get_ptr(id_obj, max_size);
+			auto ptr = smm_.object_get_ptr(id_obj, max_size);
 			//std::cout << "itdata2: " << it.first << " ptr: " << 
 			//	ptr << " " << max_size << std::endl;
 
@@ -545,7 +545,7 @@ public:
 	bool get_image_size(const std::string &object_name, 
 		int &cols, int &rows, int &channels) {
 		std::vector<double> values;
-		if (get_object_Vecd(object_name, values)) {
+		if (object_get_Vecd(object_name, values)) {
 			cols = static_cast<int>(values[0]);
 			rows = static_cast<int>(values[1]);
 			channels = static_cast<int>(values[2]);

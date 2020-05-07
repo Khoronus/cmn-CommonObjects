@@ -205,8 +205,8 @@ public:
 
 	/** @brief It returns the pointer to the object associated
 	*/
-	void* get_object_ptr(size_t id_obj, size_t &size) {
-		auto ptr = smm_.get_ptr(id_obj, size);
+	void* object_get_ptr(size_t id_obj, size_t &size) {
+		auto ptr = smm_.object_get_ptr(id_obj, size);
 		if (ptr != nullptr) {
 			return ptr;
 		}
@@ -241,12 +241,12 @@ public:
 
 		@previous_name get_object_values
 	*/
-	bool get_object_Vecd(
+	bool object_get_Vecd(
 		const std::string &name,
 		std::vector<double> &values) {
 		size_t key_id = get_key_id(name);
 		if (key_id != kInvalidKeyID) {
-			smm_.copyTo_Vecd(key_id, values);
+			smm_.object_Vecd_copyTo(key_id, values);
 			//for (auto &it : smm_.shared_object(key_id)->double_vector_) {
 			//	values.push_back(it);
 			//}
@@ -259,12 +259,12 @@ public:
 
 		@previous_name get_object_values
 	*/
-	bool get_object_Veci(
+	bool object_get_Veci(
 		const std::string &name,
 		std::vector<int> &values) {
 		size_t key_id = get_key_id(name);
 		if (key_id != kInvalidKeyID) {
-			smm_.copyTo_Veci(key_id, values);
+			smm_.object_Veci_copyTo(key_id, values);
 			return true;
 		}
 		return false;

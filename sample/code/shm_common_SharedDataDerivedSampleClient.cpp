@@ -49,7 +49,7 @@ public:
 	*/
 	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
 		// parse the command
-		parse(smm.get_string("req0"));
+		parse(smm.object_get_string("req0"));
 		//std::cout << "clientside: received" << std::endl;
 
 		//std::cout << "msg: " << smm.get("cmd0") << std::endl;
@@ -139,7 +139,7 @@ int test_client() {
 		// image used to close the program
 		size_t size = 0;
 		cv::Mat m(rows, cols, CV_8UC3,
-			shared_data_client.get_object_ptr(key_image, size));
+			shared_data_client.object_get_ptr(key_image, size));
 		std::cout << "size: " << size << std::endl;
 		bool end_loop = false;
 		do {
@@ -185,7 +185,7 @@ public:
 		std::string msg;
 		msg = smm.object_name(object_id);
 		std::cout << "client_side: smm object name:" << msg << std::endl;
-		msg = smm.get_string(object_id);
+		msg = smm.object_get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
 		//smm.set_string(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
 
@@ -317,7 +317,7 @@ int test_client_sycn() {
 		// image used to close the program
 		size_t size = 0;
 		cv::Mat m(rows, cols, CV_8UC3,
-			shared_data_client.get_object_ptr(key_image, size));
+			shared_data_client.object_get_ptr(key_image, size));
 		std::cout << "size: " << size << std::endl;
 		int kSharedDataProcessTimeout = 1000;
 
@@ -361,8 +361,8 @@ int test_client_sycn() {
 				// Read the result of the detection
 				std::vector<int> vint;
 				std::vector<double> vdouble;
-				shared_data_client.get_object_Veci("objdet", vint);
-				shared_data_client.get_object_Vecd("objdet", vdouble);
+				shared_data_client.object_get_Veci("objdet", vint);
+				shared_data_client.object_get_Vecd("objdet", vdouble);
 				std::cout << "int>> ";
 				for (auto &it : vint) {
 					std::cout << it << " ";
@@ -415,7 +415,7 @@ public:
 		std::string msg;
 		msg = smm.object_name(object_id);
 		std::cout << "client_side: smm object name:" << msg << std::endl;
-		msg = smm.get_string(object_id);
+		msg = smm.object_get_string(object_id);
 		std::cout << "msg: " << msg << std::endl;
 		//smm.set_string(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
 
@@ -547,7 +547,7 @@ int test_client_sycn_glob() {
 		// image used to close the program
 		size_t size = 0;
 		cv::Mat m(rows, cols, CV_8UC3,
-			shared_data_client.get_object_ptr(key_image, size));
+			shared_data_client.object_get_ptr(key_image, size));
 		std::cout << "size: " << size << std::endl;
 		int kSharedDataProcessTimeout = 1000;
 
