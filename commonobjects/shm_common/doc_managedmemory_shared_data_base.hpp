@@ -474,6 +474,7 @@ public:
 			err = false;
 			return shared_object_[id].int_vector_[elem_idx];
 		}
+		return 0;
 	}
 
 	/** @brief Get the desired information in the vector.
@@ -492,6 +493,7 @@ public:
 			err = false;
 			return shared_object_[id].double_vector_[elem_idx];
 		}
+		return 0;
 	}
 
 
