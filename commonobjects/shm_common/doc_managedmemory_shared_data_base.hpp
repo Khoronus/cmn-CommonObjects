@@ -163,7 +163,7 @@ public:
 	*/
 	bool create(
 		const std::string &shared_memory_name, 
-		int memory_to_instantiate_size) {
+		size_t memory_to_instantiate_size) {
 
 		shared_memory_name_ = shared_memory_name;
 
@@ -298,55 +298,6 @@ public:
 	}
 
 	/** @brief Push new information
-
-		@previous push_info
-	*/
-	void object_copyFrom(size_t id, const std::string &msg, std::vector<int> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			// Fill the new shared string
-			shared_object_[id].char_string_ = msg.c_str();
-			// Clear and fill the new vector data
-			shared_object_[id].int_vector_.clear();
-			for (auto it : value)
-			{
-				shared_object_[id].int_vector_.push_back(it);
-			}
-		}
-	}
-	/** @brief It push a new vector data
-
-		@previous push_info
-	*/
-	void object_Veci_copyFrom(size_t id, std::vector<int> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			// Clear and fill the new vector data
-			shared_object_[id].int_vector_.clear();
-			for (auto it : value)
-			{
-				shared_object_[id].int_vector_.push_back(it);
-			}
-		}
-	}
-
-	/** @brief Modify the current information (without change the size of the
-               object)
-
-		@previous modify_info
-	*/
-	void object_Veci_modify(size_t id, std::vector<int> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			if (shared_object_[id].int_vector_.size() == value.size()) {
-				for (size_t i = 0; i < value.size(); ++i) {
-					shared_object_[id].int_vector_[i] = value[i];
-				}
-			}
-		}
-	}
-
-	/** @brief Push new information
 	*/
 	void set_object_type(size_t id, const std::string &msg) {
 		if (id >= 0 && id < num_items_)
@@ -392,63 +343,23 @@ public:
 		return std::string();
 	}
 
-
 	/** @brief Push new information
 
-		@previous set
+		@previous push_info
 	*/
-	void object_set_string(size_t id, const std::string &msg) {
+	void object_copyFrom(size_t id, const std::string &msg, std::vector<int> &value) {
 		if (id >= 0 && id < num_items_)
 		{
 			// Fill the new shared string
 			shared_object_[id].char_string_ = msg.c_str();
-		}
-	}
-
-	/** @brief Push new information
-
-		@previous set
-	*/
-	void object_Vecd_copyFrom(size_t id, const std::vector<double> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			// Clear and fill the new vector data if the size is different
-			if (value.size() != shared_object_[id].double_vector_.size()) {
-				shared_object_[id].double_vector_.clear();
-				for (auto it : value)
-				{
-					shared_object_[id].double_vector_.push_back(it);
-				}
-			} else {
-				for (size_t i = 0; i < value.size(); ++i) {
-					shared_object_[id].double_vector_[i] = value[i];
-				}
+			// Clear and fill the new vector data
+			shared_object_[id].int_vector_.clear();
+			for (auto it : value)
+			{
+				shared_object_[id].int_vector_.push_back(it);
 			}
 		}
 	}
-
-	/** @brief Push new information
-
-		@previous set
-	*/
-	void object_Veci_copyFrom(size_t id, const std::vector<int> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			// Clear and fill the new vector data if the size is different
-			if (value.size() != shared_object_[id].int_vector_.size()) {
-				shared_object_[id].int_vector_.clear();
-				for (auto it : value)
-				{
-					shared_object_[id].int_vector_.push_back(it);
-				}
-			} else {
-				for (size_t i = 0; i < value.size(); ++i) {
-					shared_object_[id].int_vector_[i] = value[i];
-				}
-			}
-		}
-	}
-
 
 	/** @brief Push new information
 
@@ -464,6 +375,138 @@ public:
 			for (auto it : value)
 			{
 				shared_object_[id].double_vector_.push_back(it);
+			}
+		}
+	}
+
+	/** @brief It push a new vector data
+
+		@previous push_info
+	*/
+	void object_Veci_copyFrom(size_t id, std::vector<int> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Clear and fill the new vector data
+			shared_object_[id].int_vector_.clear();
+			for (auto it : value)
+			{
+				shared_object_[id].int_vector_.push_back(it);
+			}
+		}
+	}
+
+
+	/** @brief Push new information
+
+		@previous set
+	*/
+	void object_Veci_copyFrom(size_t id, const std::vector<int> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Clear and fill the new vector data if the size is different
+			if (value.size() != shared_object_[id].int_vector_.size()) {
+				shared_object_[id].int_vector_.clear();
+				for (auto it : value)
+				{
+					shared_object_[id].int_vector_.push_back(it);
+				}
+			}
+			else {
+				for (size_t i = 0; i < value.size(); ++i) {
+					shared_object_[id].int_vector_[i] = value[i];
+				}
+			}
+		}
+	}
+
+
+	/** @brief Modify the current information (without change the size of the
+               object)
+
+		@previous modify_info
+	*/
+	void object_Veci_modify(size_t id, std::vector<int> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			if (shared_object_[id].int_vector_.size() == value.size()) {
+				for (size_t i = 0; i < value.size(); ++i) {
+					shared_object_[id].int_vector_[i] = value[i];
+				}
+			}
+		}
+	}
+
+	/** @brief Modify the current information (without change the size of the
+			   object)
+	*/
+	void object_Veci_modify(size_t id, size_t elem_idx, int value) {
+		if (id >= 0 && id < num_items_ &&
+			elem_idx < shared_object_[id].int_vector_.size())
+		{
+			shared_object_[id].int_vector_[elem_idx] = value;
+		}
+	}
+
+	/** @brief Modify the current information (without change the size of the
+			   object)
+	*/
+	void object_Vecd_modify(size_t id, size_t elem_idx, double value) {
+		if (id >= 0 && id < num_items_ &&
+			elem_idx < shared_object_[id].double_vector_.size())
+		{
+			shared_object_[id].double_vector_[elem_idx] = value;
+		}
+	}
+
+	/** @brief Get the desired information in the vector.
+
+		It gets the desired information in the vector.
+
+		@param[out] err It is true if an error occurred. False otherwise.
+
+		@return It return the value of the field or 0 if it does not exist.
+	*/
+	int object_Veci(size_t id, size_t elem_idx, bool &err) {
+		err = true;
+		if (id >= 0 && id < num_items_ &&
+			elem_idx < shared_object_[id].int_vector_.size())
+		{
+			err = false;
+			return shared_object_[id].int_vector_[elem_idx];
+		}
+	}
+
+	/** @brief Get the desired information in the vector.
+
+		It gets the desired information in the vector.
+
+		@param[out] err It is true if an error occurred. False otherwise.
+
+		@return It return the value of the field or 0 if it does not exist.
+	*/
+	double object_Vecd(size_t id, size_t elem_idx, bool &err) {
+		err = true;
+		if (id >= 0 && id < num_items_ &&
+			elem_idx < shared_object_[id].double_vector_.size())
+		{
+			err = false;
+			return shared_object_[id].double_vector_[elem_idx];
+		}
+	}
+
+
+	/** @brief Modify the current information (without change the size of the
+			   object)
+
+		@previous_name modify_info
+	*/
+	void object_Vecd_modify(size_t id, std::vector<double> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			if (shared_object_[id].double_vector_.size() == value.size()) {
+				for (size_t i = 0; i < value.size(); ++i) {
+					shared_object_[id].double_vector_[i] = value[i];
+				}
 			}
 		}
 	}
@@ -486,7 +529,8 @@ public:
 				{
 					shared_object_[id].double_vector_.push_back(it);
 				}
-			} else {
+			}
+			else {
 				for (size_t i = 0; i < value.size(); ++i) {
 					shared_object_[id].double_vector_[i] = value[i];
 				}
@@ -499,6 +543,29 @@ public:
 			//{
 			//	shared_object_[id].double_vector_.push_back(it);
 			//}
+		}
+	}
+
+
+	/** @brief Push new information
+
+		@previous set
+	*/
+	void object_Vecd_copyFrom(size_t id, const std::vector<double> &value) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Clear and fill the new vector data if the size is different
+			if (value.size() != shared_object_[id].double_vector_.size()) {
+				shared_object_[id].double_vector_.clear();
+				for (auto it : value)
+				{
+					shared_object_[id].double_vector_.push_back(it);
+				}
+			} else {
+				for (size_t i = 0; i < value.size(); ++i) {
+					shared_object_[id].double_vector_[i] = value[i];
+				}
+			}
 		}
 	}
 
@@ -555,24 +622,6 @@ public:
 		}
 	}
 
-
-
-	/** @brief Modify the current information (without change the size of the 
-	           object)
-
-		@previous_name modify_info
-	*/
-	void object_modify_Vecd(size_t id, std::vector<double> &value) {
-		if (id >= 0 && id < num_items_)
-		{
-			if (shared_object_[id].double_vector_.size() == value.size()) {
-				for (size_t i = 0; i < value.size(); ++i) {
-					shared_object_[id].double_vector_[i] = value[i];
-				}
-			}
-		}
-	}
-
 	/** @brief It sets the pointer data information
 
 		@previous_name set_ptr
@@ -594,10 +643,23 @@ public:
 		if (id >= 0 && id < num_items_ &&
 			bytes < shared_object_[id].ptr_size()) {
 			memcpy(ptr, shared_object_[id].ptr(), bytes);
+			return true;
 		}
+		return false;
 	}
 
 
+	/** @brief Push new information
+
+		@previous set
+	*/
+	void object_set_string(size_t id, const std::string &msg) {
+		if (id >= 0 && id < num_items_)
+		{
+			// Fill the new shared string
+			shared_object_[id].char_string_ = msg.c_str();
+		}
+	}
 	/** @brief Get string content
 
 		@previous get
@@ -615,7 +677,7 @@ public:
 		@previous get
 	*/
 	std::string object_get_string(const std::string &key) {
-		int id = key_id_[key];
+		size_t id = key_id_[key];
 		if (id >= 0 && id < num_items_)
 		{
 			return std::string(shared_object_[id].char_string_.begin(),
@@ -700,7 +762,7 @@ private:
 	}
 
 	// Container with the key information already assigned
-	std::map<std::string, int> key_id_;
+	std::map<std::string, size_t> key_id_;
 };
 
 } // namespace shm

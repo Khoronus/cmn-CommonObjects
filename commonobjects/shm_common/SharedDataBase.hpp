@@ -57,7 +57,7 @@ const size_t kInvalidKeyID = -1;
 
 /** @brief Function for callback
 */
-typedef std::function<void(int id, SharedMemoryManager &smm)> registration_callback_function_shared;
+typedef std::function<void(size_t id, SharedMemoryManager &smm)> registration_callback_function_shared;
 
 /** @brief Class to manage a shared data
 
@@ -90,53 +90,12 @@ public:
 		const std::string &msg,
 		bool do_allocate = true) = 0;
 
-	///** @brief It detects the memory which will contain the structured data.
 
-	//It detects the memory which will contain the structured data.
-
-	//@param[in] name_shm Shared memory name
-	//*/
-	//bool detect(
-	//	const std::string &name_shm,
-	//	const std::string &name_object_shm) {
-
-	//	// copy the name of the shared memory
-	//	name_shm_ = name_shm;
-
-	//	if (!smm_.detect(name_shm_, name_object_shm)) {
-	//		std::cout << "Unable to detect: " << name_shm << std::endl;
-	//		return false;
-	//	}
-
-	//	// It creates the mutex and condition variable for whole process
-	//	global_mtx_ =
-	//		smm_.find_or_create_mutex("global_mtx");
-	//	global_cnd_ =
-	//		smm_.find_or_create_condition("global_cnd");
-
-	//	// It creates the mutex and condition variable for the existing
-	//	// objects
-	//	for (size_t i = 0; i < smm_.num_items(); ++i) {
-	//		std::string name = "obj_mtx" + std::to_string(i);
-	//		v_obj_mtx_.push_back(
-	//			smm_.find_or_create_mutex(name.c_str())
-	//		);
-	//	}
-	//	for (size_t i = 0; i < smm_.num_items(); ++i) {
-	//		std::string name = "obj_cnd" + std::to_string(i);
-	//		v_obj_cnd_.push_back(
-	//			smm_.find_or_create_condition(name.c_str())
-	//		);
-	//	}
-
-	//	return true;
-	//}
-
+	/** @brief Detects existing shared memory
+	*/
 	virtual bool detect(
 		const std::string &name_shm,
 		const std::string &name_object_shm) = 0;
-
-
 
 	/** @brief It starts the worker
 	*/
@@ -203,24 +162,13 @@ public:
 		return kInvalidKeyID;
 	}
 
-	/** @brief It returns the pointer to the object associated
-	*/
-	void* object_get_ptr(size_t id_obj, size_t &size) {
-		auto ptr = smm_.object_get_ptr(id_obj, size);
-		if (ptr != nullptr) {
-			return ptr;
-		}
-		size = 0;
-		return nullptr;
-	}
-
 	/** @brief It notifies that the data has been pushed (process)
 	*/
 	void global_notify() {
 		global_cnd_->notify_all();
-	//	std::unique_lock<std::mutex> lk(c_mutex_);
-	//	c_is_ready_ = true;
-	//	c_cv_.notify_one();
+		//	std::unique_lock<std::mutex> lk(c_mutex_);
+		//	c_is_ready_ = true;
+		//	c_cv_.notify_one();
 	}
 
 	/** @brief Notify for the objects allocated
@@ -236,6 +184,20 @@ public:
 			v_obj_cnd_[id_obj]->notify_all();
 		}
 	}
+
+	/** @brief It returns the pointer to the object associated
+	*/
+	void* object_get_ptr(size_t id_obj, size_t &size) {
+		return smm_.object_get_ptr(id_obj, size);
+	}
+	//	auto ptr = smm_.object_get_ptr(id_obj, size);
+	//	if (ptr != nullptr) {
+	//		return ptr;
+	//	}
+	//	size = 0;
+	//	return nullptr;
+	//}
+
 
 	/** @brief It push a source image in the shared memory
 
@@ -270,6 +232,18 @@ public:
 		return false;
 	}
 
+	//bool object_Veci_modify(
+	//	size_t key_id, size_t elem_id, int value) {
+	//	smm_.object_Veci_modify(key_id, elem_id, value);
+	//}
+	//bool object_Vecd_modify(
+	//	size_t key_id, size_t elem_id, double value) {
+	//	smm_.object_Vecd_modify(key_id, elem_id, value);
+	//}
+
+	SharedMemoryManager& smm() {
+		return smm_;
+	}
 
 protected:
 

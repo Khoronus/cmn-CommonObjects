@@ -181,24 +181,24 @@ void share_data_test() {
 				break;
 			case 'r':
 				std::cout << "pushed r" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|1");
+				shared_data_server.overwrite_data_byid(key_req0, "record|1");
 				break;
 			case 's':
 				std::cout << "pushed s" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|0");
+				shared_data_server.overwrite_data_byid(key_req0, "record|0");
 				break;
 			case 'p':
 				std::cout << "pushed p" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "path|d:\\workspace\\testrec");
-				shared_data_server.push_data_byid(key_req1, "path|d:\\workspace\\testrec");
+				shared_data_server.overwrite_data_byid(key_req0, "path|d:\\workspace\\testrec");
+				shared_data_server.overwrite_data_byid(key_req1, "path|d:\\workspace\\testrec");
 				break;
 			case 'n':
 				std::cout << "pushed n" << std::endl;
-				shared_data_server.push_data_byid(key_req1, "is_runtime|1|0|0|0|0");
+				shared_data_server.overwrite_data_byid(key_req1, "is_runtime|1|0|0|0|0");
 				break;
 			case 'm':
 				std::cout << "pushed m" << std::endl;
-				shared_data_server.push_data_byid(key_req1, "is_runtime|0|0|100|0|0");
+				shared_data_server.overwrite_data_byid(key_req1, "is_runtime|0|0|100|0|0");
 				break;
 			}
 			++num_frame;
@@ -261,7 +261,7 @@ public:
 			smm.object_Veci_copyFrom(key_yolo, vint);
 			smm.object_Vecd_copyFrom(key_yolo, vdouble);
 
-			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
+			shared_data_server->overwrite_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
 		}
 		is_ready_to_write_ = true;
 	}
@@ -409,11 +409,11 @@ void share_data_sync() {
 				break;
 			case 'r':
 				std::cout << "pushed r" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|1");
+				shared_data_server.overwrite_data_byid(key_req0, "record|1");
 				break;
 			case 's':
 				std::cout << "pushed s" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|0");
+				shared_data_server.overwrite_data_byid(key_req0, "record|0");
 				break;
 			}
 			++num_frame;
@@ -452,7 +452,7 @@ public:
 
 		It should be thread safe since is called back from a mutex protected function
 	*/
-	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
+	void my_func(size_t object_id, co::shm::SharedMemoryManager &smm) {
 		std::cout << "server_side: received:" << object_id << std::endl;
 		std::string msg;
 		msg = smm.object_name(object_id);
@@ -476,7 +476,7 @@ public:
 			smm.object_Veci_copyFrom(key_yolo, vint);
 			smm.object_Vecd_copyFrom(key_yolo, vdouble);
 
-			shared_data_server->push_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
+			shared_data_server->overwrite_data_byid(key_req0, "Update|" + std::to_string(last_frame_process));
 		}
 		is_ready_to_write_ = true;
 	}
@@ -636,11 +636,11 @@ void share_data_sync_glob() {
 				break;
 			case 'r':
 				std::cout << "pushed r" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|1");
+				shared_data_server.overwrite_data_byid(key_req0, "record|1");
 				break;
 			case 's':
 				std::cout << "pushed s" << std::endl;
-				shared_data_server.push_data_byid(key_req0, "record|0");
+				shared_data_server.overwrite_data_byid(key_req0, "record|0");
 				break;
 			}
 			++num_frame;

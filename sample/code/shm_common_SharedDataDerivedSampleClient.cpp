@@ -180,7 +180,7 @@ public:
 
 	/** @brief Callback functions
 	*/
-	void my_func(int object_id, co::shm::SharedMemoryManager &smm) {
+	void my_func(size_t object_id, co::shm::SharedMemoryManager &smm) {
 		std::cout << "client_side: received:" << object_id << std::endl;
 		std::string msg;
 		msg = smm.object_name(object_id);
@@ -379,7 +379,7 @@ int test_client_sycn() {
 				callback_elaboration.set_is_ready_to_write(false);
 				++num_frame;
 			}
-			shared_data_client.push_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
+			shared_data_client.overwrite_data_byid(key_cmd0, "data_is_ready|" + std::to_string(num_frame));
 		} while (!end_loop);
 	}
 	catch (boost::interprocess::interprocess_exception &ex) {

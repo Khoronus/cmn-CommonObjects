@@ -474,7 +474,7 @@ public:
 		@param[in] obj_name The name of the object.
 		@param[in] msg The value to set.
 	*/
-	void push_data_byname(const std::string &obj_name, const std::string &msg) {
+	void overwrite_data_byname(const std::string &obj_name, const std::string &msg) {
 		size_t id_obj = get_key_id(obj_name);
 		if (id_obj != kInvalidKeyID &&
 			id_obj >= 0 && id_obj < smm_.num_items()) {
@@ -492,7 +492,7 @@ public:
 
 	/** @brief It push new data
 	*/
-	void push_data_byid(int id_obj, const std::string &msg) {
+	void overwrite_data_byid(size_t id_obj, const std::string &msg) {
 		if (id_obj >= 0 && id_obj < smm_.num_items()) {
 			// update
 			smm_.object_set_string(id_obj, msg);
@@ -507,7 +507,7 @@ public:
 
 	/** @brief It push new data
 	*/
-	void push_data(std::map<int, ObservedObject> &data) {
+	void overwrite_data(std::map<int, ObservedObject> &data) {
 		//int num_points = 0;
 		//std::cout << "#data: " << data.size() << std::endl;
 		for (auto &it : data) {
