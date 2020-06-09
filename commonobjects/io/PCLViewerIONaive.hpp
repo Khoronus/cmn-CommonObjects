@@ -17,7 +17,7 @@
 *
 * @original  Alessandro Moro
 * @bug No known bugs.
-* @version 0.2.0.0
+* @version 0.3.0.0
 *
 */
 #ifndef COMMONOBJECTS_IO_PCLVIEWERNAIVE_HPP__
@@ -202,6 +202,30 @@ public:
 				it.second[2] << " 0.01" << std::endl;
 		}
 	}
+
+	/** @brief It saves a set of point with relative color in naive format.
+
+		@param[in] fname File where the data is saved.
+		@param[in] pts Collection of points in the format point3d,color
+
+		@return Return true in case of success. False otherwise.
+	*/
+	template <typename _Scalar>
+	static bool save_naive_pointcloud(const std::string &fname,
+		std::vector<std::pair<_Ty3, _Scalar>> &pts) {
+
+		std::ofstream f(fname);
+		if (!f.is_open()) return false;
+
+		f << "PCLViewerIONaive v 0.1.0" << std::endl;
+		f << "type(0 point, 1 sphere, 2 line) x0 y0 z0 x1 y1 z1 r g b radius" << std::endl;
+		for (auto &it : pts) {
+			f << "0 " << it.first.x << " " << it.first.y << " " << it.first.z <<
+				" 0 0 0 " << it.second[0] << " " << it.second[1] << " " <<
+				it.second[2] << " 0.01" << std::endl;
+		}
+	}
+
 
 	template <typename _Scalar>
 	static bool save_naive(const std::string &fname,
