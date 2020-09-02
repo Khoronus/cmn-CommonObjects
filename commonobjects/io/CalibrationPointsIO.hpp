@@ -166,8 +166,12 @@ public:
 	}
 
 	/** @brief It saves the points for calibration.
+
+		It saves only the 3D points. By default it uses 0,0 for the 2D points.
+
+		@previous_name save_points_xyz_xy
 	*/
-	static bool save_points_xyz_xy(const std::string &filename,
+	static bool save_points_xyz(const std::string &filename,
 		std::vector<_Ty3> &v3dpoints)
 	{
 		if (v3dpoints.size() == 0) return false;
@@ -191,6 +195,11 @@ public:
 	}
 
 
+	[[deprecated("Use save_points_xyz instead.")]]
+	static bool save_points_xyz_xy(const std::string &filename,
+		std::vector<_Ty3> &v3dpoints) {
+		return save_points_xyz(filename, v3dpoints);
+	}
 };
 
 } // namespace io

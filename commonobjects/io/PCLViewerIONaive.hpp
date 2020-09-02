@@ -65,6 +65,8 @@ public:
 		}
 		f.close();
 		f.clear();
+
+		return true;
 	}
 
 
@@ -100,6 +102,8 @@ public:
 		}
 		f.close();
 		f.clear();
+
+		return true;
 	}
 
 
@@ -135,6 +139,8 @@ public:
 		}
 		f.close();
 		f.clear();
+
+		return true;
 	}
 
 	/** @brief It saves the current scene for debug
@@ -157,6 +163,8 @@ public:
 				" 0 0 0 " << it.second[0] << " " << it.second[1] << " " <<
 				it.second[2] << " 0.01" << std::endl;
 		}
+
+		return true;
 	}
 
 	/** @brief It saves the current scene for debug
@@ -179,6 +187,8 @@ public:
 				" 0 0 0 " << it.second[0] << " " << it.second[1] << " " <<
 				it.second[2] << " 0.01" << std::endl;
 		}
+
+		return true;
 	}
 
 	/** @brief It saves the current scene for debug
@@ -224,6 +234,8 @@ public:
 				" 0 0 0 " << it.second[0] << " " << it.second[1] << " " <<
 				it.second[2] << " 0.01" << std::endl;
 		}
+
+		return true;
 	}
 
 
