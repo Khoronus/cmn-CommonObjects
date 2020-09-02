@@ -159,7 +159,7 @@ public:
 		f << "2 " << p.x << " " << p.y << " " << p.z <<
 			" " << o.x << " " << o.y << " " << o.z << " 255 255 255 0.001" << std::endl;
 		for (auto &it : pts) {
-			f << "1 " << it.first.x << " " << it.first.y << " " << it.first.z <<
+			f << "0 " << it.first.x << " " << it.first.y << " " << it.first.z <<
 				" 0 0 0 " << it.second[0] << " " << it.second[1] << " " <<
 				it.second[2] << " 0.01" << std::endl;
 		}
