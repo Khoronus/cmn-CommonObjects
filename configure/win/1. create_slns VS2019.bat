@@ -1,5 +1,5 @@
 REM location is set with the current called batch location. If different, please change
-SET "location="
+SET "location=%cd%\..\.."
 SET "build_folder=build"
 REM SET "compiler_version=Visual Studio 14 2015 Win64"
 REM SET "compiler_version=Visual Studio 15 2017 Win64"

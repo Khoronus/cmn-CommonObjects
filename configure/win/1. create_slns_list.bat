@@ -1,2 +1,2 @@
-cd "D:\workspace\programs\ThirdPartyLib\cmn-CommonObjects\sample"
+cd "%location%\sample"
 call create_sln.bat
