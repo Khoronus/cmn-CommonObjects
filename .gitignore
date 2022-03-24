@@ -16,4 +16,5 @@ thirdParty/
 
 # Ignore local file
 configure/path_configuration.txt
+configure/global_path_configuration.txt
 configure/win/build_result.txt

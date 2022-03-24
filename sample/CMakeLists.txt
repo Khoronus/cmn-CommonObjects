@@ -15,11 +15,39 @@ set (VERSION_NAME \"CommonObjectsSample\")
 include ("../cmakemacro/cmake_macro_setvariables.txt")
 
 ######################################################################
-# Read the path configuration file
+# Read the path configuration file (global)
+# get the location of the global configuration path
+file(READ "../configure/global_path_configuration.txt" pt_global)
+string(REPLACE "\n" ";" PATH_GLOBAL_LIST ${pt_global})
+GET_PATH("${PATH_GLOBAL_LIST}" "path_global " path_global)
+set(PLATFORM_PATH "${path_global}")
+message(STATUS "PLATFORM_PATH = (${PLATFORM_PATH})")
+# get the location of the global configuration projects path
+find_file (pt_location_global NAMES "global_projects_path_configuration.txt" REQUIRED 
+  PATHS ${PLATFORM_PATH} 
+  DOC "Path to global configuration paths.")
+string(REPLACE "\n" ";" PATH_LOCATION_LIST ${pt_location_global})
+message(STATUS "list = ${PATH_LOCATION_LIST}")
+# read the configuration file global
+file(READ "${pt_location_global}" pt_conf_global)
+#string(REPLACE "\n" ";" PATH_GLOBAL_FULL_LIST ${pt_conf_global})
+#message(STATUS "list = ${PATH_GLOBAL_FULL_LIST}")
+
+######################################################################
+# Read the path configuration file (local)
 file(READ "../configure/path_configuration.txt" pt_conf)
-string(REPLACE "\n" ";" PATH_FULL_LIST ${pt_conf})
+#string(REPLACE "\n" ";" PATH_FULL_LIST ${pt_conf})
+#message(STATUS "list = ${PATH_FULL_LIST}")
+
+######################################################################
+# Combine global and local
+string(CONCAT MULTI ${pt_conf_global} ${pt_conf})
+# remove all the new lines
+string(REPLACE "\n" ";" PATH_FULL_LIST ${MULTI})
 message(STATUS "list = ${PATH_FULL_LIST}")
-#Get the first variable
+
+######################################################################
+# Get the first variable
 GET_PATH("${PATH_FULL_LIST}" "path_opencv " path_opencv)
 message(STATUS "path_opencv = (${path_opencv})")
 GET_PATH("${PATH_FULL_LIST}" "path_boost " path_boost)
