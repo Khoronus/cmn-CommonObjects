@@ -35,7 +35,13 @@ file(READ "${pt_location_global}" pt_conf_global)
 
 ######################################################################
 # Read the path configuration file (local)
-file(READ "../configure/path_configuration.txt" pt_conf)
+set(path_local_cfg "../configure/path_configuration.txt")
+if (EXISTS ${path_local_cfg})
+  file(READ ${path_local_cfg} pt_conf)
+  message(STATUS "[+] open:${path_local_cfg}")
+else()
+  message(STATUS "[-] open:${path_local_cfg}")
+endif()
 #string(REPLACE "\n" ";" PATH_FULL_LIST ${pt_conf})
 #message(STATUS "list = ${PATH_FULL_LIST}")
 
