@@ -665,6 +665,7 @@ int test_client_sycn_glob() {
 //-----------------------------------------------------------------------------
 int main()
 {
+	std::cout << "shm_common_SharedDataDerivedSampleClient" << std::endl;
 	//test_client();
 	//test_client_sycn();
 

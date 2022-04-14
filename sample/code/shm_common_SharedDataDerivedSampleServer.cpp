@@ -656,9 +656,6 @@ void share_data_sync_glob() {
 	shared_data_server.stop();
 }
 
-
-
-
 } // namespace anonymous
 
 
